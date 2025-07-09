@@ -1,7 +1,8 @@
-"use client"
+"use client";
 import { Navbar, Footer, Button } from "../components";
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 const CalendarIcon = (props) => (
   <svg
@@ -27,7 +28,7 @@ const CalendarIcon = (props) => (
 const KegiatanCard = ({ title, description, date, location, status }) => {
   const statusStyles = {
     "Sedang Berlangsung": "bg-[#F5CB58] text-black",
-    "Selesai": "bg-[#97D077] text-black",
+    Selesai: "bg-[#97D077] text-black",
   };
 
   return (
@@ -37,19 +38,21 @@ const KegiatanCard = ({ title, description, date, location, status }) => {
         <div>
           {status && (
             <div className="mb-4">
-              <span
-                className={`inline-block px-3 py-1 text-sm font-semibold ${statusStyles[status]}`}
-              >
-                {status}
-              </span>
+              {status !== "Mendatang" && (
+                <span
+                  className={`inline-block px-3 py-1 text-sm font-semibold ${statusStyles[status]}`}
+                >
+                  {status}
+                </span>
+              )}
             </div>
           )}
-          <h3 className="text-3xl font-bold text-white mb-4">{title}</h3>
-          <p className="text-gray-400 leading-relaxed">{description}</p>
+          <h3 className="text-h1 font-bold text-white mb-4">{title}</h3>
+          <p className="text-gray-400 leading-relaxed text-b1">{description}</p>
         </div>
 
         <div className="mt-auto pt-6 flex justify-between items-end">
-          <div className="flex items-center text-gray-400 text-sm">
+          <div className="flex items-center text-gray-400 text-b2">
             <span className="flex items-center mr-6">
               <CalendarIcon className="mr-2" />
               {date}
@@ -68,7 +71,7 @@ const KegiatanCard = ({ title, description, date, location, status }) => {
 
           <a
             href="#"
-            className="text-white font-semibold flex items-center group text-lg"
+            className="text-white font-semibold flex items-center group text-sh1"
           >
             Daftar Sekarang
             <Image
@@ -137,7 +140,7 @@ export default function Kegiatan() {
       {/* Hero Section */}
       <section className="bg-[#1F1F1F]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-28 py-24">
-          <h1 className="text-5xl lg:text-6xl font-manrope font-bold text-white translate-y-16">
+          <h1 className="text-display font-manrope font-bold text-white translate-y-16">
             Kegiatan
           </h1>
         </div>
@@ -152,7 +155,7 @@ export default function Kegiatan() {
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`pb-2 cursor-pointer text-lg font-manrope transition-colors ${
+                  className={`pb-2 cursor-pointer text-sh1 font-manrope transition-colors ${
                     activeTab === tab
                       ? "font-semibold text-white border-b-2 border-white"
                       : "text-gray-400 hover:text-white"
@@ -170,8 +173,26 @@ export default function Kegiatan() {
             ))}
           </div>
 
-          <div className="text-center mt-12 font-manrope">
-            <Button label="Show More" href="/kegiatan" />
+          <div className="text-center mt-12 flex justify-center">
+            <Link href="/kegiatan">
+              <button className="py-2 px-48 bg-[#403E3D] flex items-center gap-2 cursor-pointer font-manrope">
+                <p className="text-white font-manrope text-lg">Show More</p>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width={20}
+                  height={20}
+                  fill="none"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    d="M10 5v10M5 10h10"
+                    stroke="#fff"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            </Link>
           </div>
         </div>
       </section>
