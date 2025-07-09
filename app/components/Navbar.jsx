@@ -1,9 +1,9 @@
-"use client"
-import Image from 'next/image';
-import Link from 'next/link';
-import { Logo } from '../../public/assets/image';
-import Button from './Button';
-import { useState } from 'react';
+"use client";
+import Image from "next/image";
+import Link from "next/link";
+import { Logo } from "../../public/assets/image";
+import Button from "./Button";
+import { useState } from "react";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,13 +11,16 @@ const Navbar = () => {
 
   return (
     <>
-      <header className='fixed top-0 z-[1000] w-full px-8 lg:px-18 py-3 flex justify-between items-center bg-black'>
-        <Link href="/" className={`${isOpen ? 'invisible' : 'visible'} lg:visible`}>
+      <header className="fixed top-0 z-[1000] w-full px-8 lg:px-18 py-3 flex justify-between items-center bg-black">
+        <Link
+          href="/"
+          className={`${isOpen ? "invisible" : "visible"} lg:visible`}
+        >
           <Image src={Logo} alt="logo" width={64} height={64} />
         </Link>
-        
+
         {/* Desktop */}
-        <div className="hidden lg:flex items-center gap-6 text-white">
+        <div className="font-manrope hidden lg:flex items-center gap-6 text-white">
           <Link href="/">Home</Link>
           <Link href="/kegiatan">Kegiatan</Link>
           <Link href="/berita">Berita</Link>
@@ -29,15 +32,30 @@ const Navbar = () => {
         </div>
 
         {/* Hamburger */}
-        <div className='lg:hidden flex items-center'>
-          <button onClick={() => setIsOpen(!isOpen)} className='text-white p-2 cursor-pointer' aria-label="Toggle menu">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+        <div className="lg:hidden flex items-center">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="text-white p-2 cursor-pointer"
+            aria-label="Toggle menu"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16m-7 6h7"
+              />
             </svg>
           </button>
         </div>
       </header>
-      
+
       {/* Overlay */}
       {isOpen && (
         <div
@@ -57,31 +75,82 @@ const Navbar = () => {
           <Link href="/" onClick={closeSidebar}>
             <Image src={Logo} alt="logo" width={48} height={48} />
           </Link>
-          <button onClick={closeSidebar} className='text-white p-2 cursor-pointer' aria-label="Close menu">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <button
+            onClick={closeSidebar}
+            className="text-white p-2 cursor-pointer"
+            aria-label="Close menu"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
-        
+
         {/* Sideber (styling) */}
         <div className="flex flex-col gap-4 text-white ">
-          <Link href="/" onClick={closeSidebar} className="p-2 w-full text-left rounded-md hover:text-red-600 hover:bg-gray-800 transition-colors">Home</Link>
-          <Link href="/kegiatan" onClick={closeSidebar} className="p-2 w-full text-left hover:text-red-600 hover:bg-gray-800 transition-colors">Kegiatan</Link>
-          <Link href="/berita" onClick={closeSidebar} className="p-2 w-full text-left hover:text-red-600 hover:bg-gray-800 transition-colors">Berita</Link>
-          <Link href="/dokumentasi" onClick={closeSidebar} className="p-2 w-full text-left hover:text-red-600 hover:bg-gray-800 transition-colors">Dokumentasi</Link>
-          <Link href="/merchandise" onClick={closeSidebar} className="p-2 w-full text-left hover:text-red-600 hover:bg-gray-800 transition-colors">Merchandise</Link>
-          
+          <Link
+            href="/"
+            onClick={closeSidebar}
+            className="p-2 w-full text-left rounded-md hover:text-red-600 hover:bg-gray-800 transition-colors"
+          >
+            Home
+          </Link>
+          <Link
+            href="/kegiatan"
+            onClick={closeSidebar}
+            className="p-2 w-full text-left hover:text-red-600 hover:bg-gray-800 transition-colors"
+          >
+            Kegiatan
+          </Link>
+          <Link
+            href="/berita"
+            onClick={closeSidebar}
+            className="p-2 w-full text-left hover:text-red-600 hover:bg-gray-800 transition-colors"
+          >
+            Berita
+          </Link>
+          <Link
+            href="/dokumentasi"
+            onClick={closeSidebar}
+            className="p-2 w-full text-left hover:text-red-600 hover:bg-gray-800 transition-colors"
+          >
+            Dokumentasi
+          </Link>
+          <Link
+            href="/merchandise"
+            onClick={closeSidebar}
+            className="p-2 w-full text-left hover:text-red-600 hover:bg-gray-800 transition-colors"
+          >
+            Merchandise
+          </Link>
+
           <div className="border-b-2 border-gray-600 my-2"></div>
-          
-          <Link href="/register" onClick={closeSidebar} className="p-2 w-full text-left rounded-md hover:text-red-600 hover:bg-gray-800 transition-colors">Daftar</Link>
+
+          <Link
+            href="/register"
+            onClick={closeSidebar}
+            className="p-2 w-full text-left rounded-md hover:text-red-600 hover:bg-gray-800 transition-colors"
+          >
+            Daftar
+          </Link>
           <div onClick={closeSidebar} className="w-full">
-            <Button label="Login" href="/login" className="flex"/>
+            <Button label="Login" href="/login" className="flex" />
           </div>
         </div>
       </div>
     </>
   );
-}
+};
 
 export default Navbar;

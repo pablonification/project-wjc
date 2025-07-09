@@ -4,41 +4,40 @@
 @theme {
   /* Colors -> --color-* */
   --color-black: #101010;
-  --color-white: #FAFAFA;
-  --color-gray-200: #B6B4B3;
-  --color-gray-100: #CFCDCD;
-  --color-gray-700: #403E3D;
-  --color-red-600: #D93529;
-  --color-red-400: #F67C73;
+  --color-white: #fafafa;
+  --color-gray-200: #b6b4b3;
+  --color-gray-100: #cfcdcd;
+  --color-gray-700: #403e3d;
+  --color-red-600: #d93529;
+  --color-red-400: #f67c73;
 
+  /* --- Custom Heading Sizes --- */
 
-/* --- Custom Heading Sizes --- */
+  /* DISPLAY */
+  --text-display: 44px;
+  --text-display--line-height: 60px;
 
-/* DISPLAY */
---text-display: 44px;
---text-display--line-height: 60px;
+  /* HEADING-1 */
+  --text-h1: 32px;
+  --text-h1--line-height: 44px;
 
-/* HEADING-1 */
---text-h1: 32px;
---text-h1--line-height: 44px;
+  /* HEADING-2 */
+  --text-h2: 24px;
+  --text-h2--line-height: 32px;
 
-/* HEADING-2 */
---text-h2: 24px;
---text-h2--line-height: 32px;
+  /* SUBHEADING-1 */
+  --text-sh1: 20px;
+  --text-sh1--line-height: 28px;
 
-/* SUBHEADING-1 */
---text-sh1: 20px;
---text-sh1--line-height: 28px;
+  /* BODY-1 */
+  --text-b1: 16px;
+  --text-b1--line-height: 20px;
 
-/* BODY-1 */
---text-b1: 16px;
---text-b1--line-height: 20px;
+  /* BODY-2 */
+  --text-b2: 14px;
+  --text-b2--line-height: 18px;
 
-/* BODY-2 */
---text-b2: 14px;
---text-b2--line-height: 18px;
-
-
+  --font-manrope: "Manrope", sans-serif;
 
   /* --font-subheading: 'Futura LT', sans-serif;
   --font-paragraph: 'Futura Para', sans-serif;  */
