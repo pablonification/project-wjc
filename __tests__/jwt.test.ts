@@ -7,4 +7,8 @@ describe("jwt helper", () => {
     const decoded = verifyJwt<{ foo: string }>(token);
     expect(decoded.foo).toBe("bar");
   });
+
+  it("should throw on invalid token", () => {
+    expect(() => verifyJwt("invalid.token.here")).toThrow();
+  });
 });
