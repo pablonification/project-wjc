@@ -6,13 +6,13 @@ This monorepo contains the production-ready source code for the WJC public websi
 * **REST & GraphQL** APIs served from Next.js route handlers.
 * **MongoDB Atlas** data-layer (via Mongoose ODM).
 * **DatoCMS** headless CMS used by editors — kept in-sync with Mongo through `scripts/syncDatoToMongo.ts`.
-* Email delivery (SendGrid/Resend), JWT auth, rate-limiting, ESLint/Prettier, Jest ≥ 80 % coverage, Docker, and a GitHub Actions deployment pipeline to Vercel.
+* Email delivery (SendGrid/Resend), JWT auth, rate-limiting, ESLint/Prettier, Jest ≥ **80 %** coverage, Docker, and a GitHub Actions deployment pipeline to **Vercel**.
 
 ## 1. Local development
 
 ```bash
 # clone & install
-pnpm install
+npm install
 
 # copy environment template and fill values
 cp .env.example .env.local
@@ -21,7 +21,7 @@ cp .env.example .env.local
 docker-compose up -d
 
 # or run the dev server directly
-pnpm dev
+npm run dev
 ```
 
 Open http://localhost:3000 ↗ to see the site.
@@ -44,7 +44,7 @@ Create `.env.local` (not committed) by copying `.env.example`.
 The one-way synchronisation script pulls content from the DatoCMS GraphQL Content API and upserts it into the corresponding MongoDB collections.
 
 ```bash
-pnpm ts-node scripts/syncDatoToMongo.ts
+npx ts-node scripts/syncDatoToMongo.ts
 ```
 
 Add a webhook inside DatoCMS → **Settings → Webhooks** that triggers this script on content publish (`POST` to `/api/revalidate` or your preferred serverless endpoint).
@@ -52,7 +52,7 @@ Add a webhook inside DatoCMS → **Settings → Webhooks** that triggers this sc
 ## 4. Testing
 
 ```bash
-pnpm test            # jest --coverage
+npm test             # jest --coverage
 ```
 
 Coverage thresholds are enforced in CI (≥ 80 %).
@@ -60,8 +60,8 @@ Coverage thresholds are enforced in CI (≥ 80 %).
 ## 5. Linting & formatting
 
 ```bash
-pnpm lint            # eslint
-pnpm format          # prettier
+npm run lint         # eslint
+npm run format       # prettier
 ```
 
 ## 6. Docker
@@ -98,3 +98,25 @@ flowchart TD
 ---
 
 Made with ❤️ and ☕ by the WJC Tech Team.
+
+## 9. Recording the CMS editing experience
+
+1. Log in to **DatoCMS** and edit any Kegiatan/Berita/Dokumentasi record.
+2. Start a screen-recording tool (QuickTime / OBS / native OS recorder).
+3. Capture the following:
+   - Modifying a title or description.
+   - Saving ➜ build/publish confirmation.
+   - Webhook trigger showing successful response (DatoCMS → Vercel endpoint).
+   - Refreshing the public site to show the updated content (prove real-time sync).
+4. Export the video as **MP4** and drop it inside `docs/` or supply a sharable link in the PR.
+
+## 10. Deploying to Vercel (manual)
+
+Vercel is already integrated via GitHub Actions, but you can deploy locally:
+
+```bash
+npm run build
+vercel --prod   # requires Vercel CLI & logged-in account
+```
+
+Make sure to add the env vars on the Vercel dashboard → *Project Settings → Environment Variables*.
