@@ -7,7 +7,6 @@ jest.mock("mongoose", () => {
 });
 
 import { connectMongo } from "../lib/mongodb";
-import mongoose from "mongoose";
 
 describe("connectMongo", () => {
   it("should connect once and cache the connection", async () => {
@@ -15,6 +14,7 @@ describe("connectMongo", () => {
     const conn2 = await connectMongo();
     expect(conn1).toBe("mock-conn");
     expect(conn2).toBe("mock-conn");
+    const mongoose = require("mongoose");
     expect(mongoose.connect).toHaveBeenCalledTimes(1);
   });
 });

@@ -34,6 +34,8 @@ Variable | Purpose
 `DATOCMS_READONLY_TOKEN` | Read-only API token from DatoCMS
 `JWT_SECRET` | Secret for signing admin JWTs
 `SENDGRID_API_KEY` / `RESEND_API_KEY` | Email provider credentials (choose one)
+`RESEND_API_KEY` | Resend API key (if using Resend)
+`PORT` | Local dev port (default 3000)
 `RATE_LIMIT_POINTS` | Requests allowed per window (default 10)
 `RATE_LIMIT_DURATION` | Time window in seconds (default 60)
 
@@ -75,12 +77,12 @@ The stack starts two services:
 * `mongo` → MongoDB 6
 * `web`   → Next.js listening on port **3000**
 
-## 7. Deployment
+## 7. Deployment (CI)
 
 Every push to `main` triggers the GitHub Actions workflow at `.github/workflows/ci.yml` which:
 
 1. Installs dependencies.
-2. Runs ESLint and Jest.
+2. Runs ESLint and Jest (≥ 80 % coverage gate).
 3. Builds the Next.js app.
 4. Deploys to **Vercel** using the project/team tokens stored in repo secrets.
 
@@ -102,21 +104,20 @@ Made with ❤️ and ☕ by the WJC Tech Team.
 ## 9. Recording the CMS editing experience
 
 1. Log in to **DatoCMS** and edit any Kegiatan/Berita/Dokumentasi record.
-2. Start a screen-recording tool (QuickTime / OBS / native OS recorder).
+2. Start a screen-recording tool (QuickTime / OBS / built-in recorder).
 3. Capture the following:
-   - Modifying a title or description.
-   - Saving ➜ build/publish confirmation.
-   - Webhook trigger showing successful response (DatoCMS → Vercel endpoint).
-   - Refreshing the public site to show the updated content (prove real-time sync).
-4. Export the video as **MP4** and drop it inside `docs/` or supply a sharable link in the PR.
+   * Editing a title/description.
+   * Publishing (watch the webhook fire).
+   * Refreshing the public site and seeing the change (proves real-time sync).
+4. Export as **MP4** and commit under `docs/` or provide an accessible link in the pull-request description.
 
 ## 10. Deploying to Vercel (manual)
 
-Vercel is already integrated via GitHub Actions, but you can deploy locally:
+The CI pipeline already deploys automatically, but you can trigger a manual production deploy with the Vercel CLI:
 
 ```bash
 npm run build
-vercel --prod   # requires Vercel CLI & logged-in account
+vercel --prod   # logged-in account required
 ```
 
-Make sure to add the env vars on the Vercel dashboard → *Project Settings → Environment Variables*.
+Remember to configure the environment variables in the Vercel dashboard → **Project Settings → Environment Variables** before the first deploy.
