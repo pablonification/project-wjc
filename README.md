@@ -33,7 +33,7 @@ Variable | Purpose
 `MONGODB_URI` | MongoDB connection string (e.g. `mongodb+srv://…`)
 `DATOCMS_READONLY_TOKEN` | Read-only API token from DatoCMS
 `JWT_SECRET` | Secret for signing admin JWTs
-`SENDGRID_API_KEY` / `RESEND_API_KEY` | Email provider credentials (choose one)
+`SENDGRID_API_KEY` | SendGrid API key (if using SendGrid)
 `RESEND_API_KEY` | Resend API key (if using Resend)
 `PORT` | Local dev port (default 3000)
 `RATE_LIMIT_POINTS` | Requests allowed per window (default 10)
