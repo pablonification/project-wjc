@@ -1,36 +1,100 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# WJC Website — Next.js + MongoDB + DatoCMS
 
-## Getting Started
+This monorepo contains the production-ready source code for the WJC public website, including:
 
-First, run the development server:
+* **Next.js 15 App Router** frontend styled with TailwindCSS.
+* **REST & GraphQL** APIs served from Next.js route handlers.
+* **MongoDB Atlas** data-layer (via Mongoose ODM).
+* **DatoCMS** headless CMS used by editors — kept in-sync with Mongo through `scripts/syncDatoToMongo.ts`.
+* Email delivery (SendGrid/Resend), JWT auth, rate-limiting, ESLint/Prettier, Jest ≥ 80 % coverage, Docker, and a GitHub Actions deployment pipeline to Vercel.
+
+## 1. Local development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# clone & install
+pnpm install
+
+# copy environment template and fill values
+cp .env.example .env.local
+
+# start Mongo & web using Docker Compose (recommended)
+docker-compose up -d
+
+# or run the dev server directly
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 ↗ to see the site.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## 2. Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Variable | Purpose
+--- | ---
+`MONGODB_URI` | MongoDB connection string (e.g. `mongodb+srv://…`)
+`DATOCMS_READONLY_TOKEN` | Read-only API token from DatoCMS
+`JWT_SECRET` | Secret for signing admin JWTs
+`SENDGRID_API_KEY` / `RESEND_API_KEY` | Email provider credentials (choose one)
+`RATE_LIMIT_POINTS` | Requests allowed per window (default 10)
+`RATE_LIMIT_DURATION` | Time window in seconds (default 60)
 
-## Learn More
+Create `.env.local` (not committed) by copying `.env.example`.
 
-To learn more about Next.js, take a look at the following resources:
+## 3. Syncing content from DatoCMS → MongoDB
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The one-way synchronisation script pulls content from the DatoCMS GraphQL Content API and upserts it into the corresponding MongoDB collections.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+pnpm ts-node scripts/syncDatoToMongo.ts
+```
 
-## Deploy on Vercel
+Add a webhook inside DatoCMS → **Settings → Webhooks** that triggers this script on content publish (`POST` to `/api/revalidate` or your preferred serverless endpoint).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 4. Testing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+pnpm test            # jest --coverage
+```
+
+Coverage thresholds are enforced in CI (≥ 80 %).
+
+## 5. Linting & formatting
+
+```bash
+pnpm lint            # eslint
+pnpm format          # prettier
+```
+
+## 6. Docker
+
+```bash
+docker-compose up --build
+```
+
+The stack starts two services:
+
+* `mongo` → MongoDB 6
+* `web`   → Next.js listening on port **3000**
+
+## 7. Deployment
+
+Every push to `main` triggers the GitHub Actions workflow at `.github/workflows/ci.yml` which:
+
+1. Installs dependencies.
+2. Runs ESLint and Jest.
+3. Builds the Next.js app.
+4. Deploys to **Vercel** using the project/team tokens stored in repo secrets.
+
+## 8. Architecture
+
+```mermaid
+flowchart TD
+  DatoCMS[DatoCMS GraphQL API] -->|webhook| SyncScript[scripts/syncDatoToMongo.ts]
+  SyncScript -->|upsert| MongoDB[(MongoDB Atlas)]
+  MongoDB --> NextAPI[Next.js API Routes]
+  NextAPI --> Frontend[Next.js Pages]
+  Frontend --> User[Browser]
+```
+
+---
+
+Made with ❤️ and ☕ by the WJC Tech Team.

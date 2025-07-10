@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  web:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/wjc
+      - DATOCMS_READONLY_TOKEN=${DATOCMS_READONLY_TOKEN}
+      - JWT_SECRET=${JWT_SECRET}
+  mongo:
+    image: mongo:6
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+volumes:
+  mongo-data:
