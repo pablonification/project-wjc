@@ -44,6 +44,9 @@
     "@types/jest": "^29.5.4",
     "autoprefixer": "^10.4.16",
     "ts-node": "^10.9.2",
-    "@types/bcryptjs": "^2.4.2"
+    "@types/bcryptjs": "^2.4.2",
+    "@types/next": "^13.4.21",
+    "@types/mongoose": "^5.11.97",
+    "@types/swr": "^0.0.13"
   }
 }
