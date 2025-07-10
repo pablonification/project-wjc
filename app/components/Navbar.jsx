@@ -21,14 +21,26 @@ const Navbar = () => {
 
         {/* Desktop */}
         <div className="font-manrope hidden lg:flex items-center gap-6 text-white">
-          <Link href="/">Home</Link>
-          <Link href="/kegiatan">Kegiatan</Link>
-          <Link href="/berita">Berita</Link>
-          <Link href="/dokumentasi">Dokumentasi</Link>
-          <Link href="/merchandise">Merchandise</Link>
+          <Link href="/" className="hover:text-gray-400 transition-colors">
+            Home
+          </Link>
+          <Link href="/kegiatan" className="hover:text-gray-400 transition-colors">
+            Kegiatan
+          </Link>
+          <Link href="/berita" className="hover:text-gray-400 transition-colors">
+            Berita
+          </Link>
+          <Link href="/dokumentasi" className="hover:text-gray-400 transition-colors">
+            Dokumentasi
+          </Link>
+          <Link href="/merchandise" className="hover:text-gray-400 transition-colors">
+            Merchandise
+          </Link>
           <div className="border-l-2 border-white self-stretch"></div>
-          <Link href="/register">Daftar</Link>
-          <Button label="Login" href="/login" />
+          <Link href="/register" className="hover:text-gray-400 transition-colors">
+            Daftar
+          </Link>
+          <Button label="Login" href="/login"/>
         </div>
 
         {/* Hamburger */}

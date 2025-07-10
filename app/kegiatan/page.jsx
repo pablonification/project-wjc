@@ -25,7 +25,7 @@ const CalendarIcon = (props) => (
   </svg>
 );
 
-const KegiatanCard = ({ title, description, date, location, status }) => {
+const KegiatanCard = ({ title, description, date, location, status, slug }) => {
   const statusStyles = {
     "Sedang Berlangsung": "bg-[#F5CB58] text-black",
     Selesai: "bg-[#97D077] text-black",
@@ -70,7 +70,7 @@ const KegiatanCard = ({ title, description, date, location, status }) => {
           </div>
 
           <a
-            href="#"
+            href={`/kegiatan/${slug}`}
             className="text-white font-semibold flex items-center group text-sh1"
           >
             Daftar Sekarang
@@ -99,6 +99,7 @@ export default function Kegiatan() {
       date: "12-15 Jul 2025",
       location: "Alamat lokasi",
       status: "Mendatang",
+      slug: "kegiatan-1",
     },
     {
       title: "Judul Kegiatan",
@@ -107,6 +108,7 @@ export default function Kegiatan() {
       date: "12-15 Jul 2025",
       location: "Alamat lokasi",
       status: "Mendatang",
+      slug: "kegiatan-2",
     },
     {
       title: "Judul Kegiatan",
@@ -115,6 +117,7 @@ export default function Kegiatan() {
       date: "12-15 Jul 2025",
       location: "Alamat lokasi",
       status: "Sedang Berlangsung",
+      slug: "kegiatan-3",
     },
     {
       title: "Judul Kegiatan",
@@ -123,6 +126,7 @@ export default function Kegiatan() {
       date: "12-15 Jul 2025",
       location: "Alamat lokasi",
       status: "Selesai",
+      slug: "kegiatan-4",
     },
   ];
 
@@ -169,7 +173,7 @@ export default function Kegiatan() {
 
           <div className="grid grid-cols-1 gap-12 font-manrope">
             {filteredActivities.map((activity, index) => (
-              <KegiatanCard key={index} {...activity} />
+              <KegiatanCard key={index} {...activity} slug={activity.slug} />
             ))}
           </div>
 

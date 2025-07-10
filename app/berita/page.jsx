@@ -3,20 +3,21 @@ import { Navbar, Footer } from "../components";
 import Image from "next/image";
 import Link from "next/link";
 
-const NewsCard = ({ category, date, title, description }) => {
+const NewsCard = ({ category, date, title, description, slug }) => {
   return (
     <div className="flex flex-col font-manrope">
-      {/* Image placeholder */}
-      <div className="w-full h-56 bg-[#D9D9D9]" />
-
       {/* Content */}
-      <div className="mt-4">
-        <p className="text-b2 text-gray-400 mb-1">
-          <span className="text-red-400 mr-1">{category}</span> | {date}
-        </p>
-        <h3 className="text-sh1 text-white font-semibold mb-1">{title}</h3>
-        <p className="text-b2 text-gray-400 line-clamp-2">{description}</p>
-      </div>
+      <Link href={`/berita/${slug}`}>
+        {/* Image placeholder */}
+        <div className="w-full h-56 bg-[#D9D9D9]" />
+        <div className="mt-4">
+          <p className="text-b2 text-gray-400 mb-1">
+            <span className="text-red-400 mr-1">{category}</span> | {date}
+          </p>
+          <h3 className="text-sh1 text-white font-semibold mb-1">{title}</h3>
+          <p className="text-b2 text-gray-400 line-clamp-2">{description}</p>
+        </div>
+      </Link>
     </div>
   );
 };
@@ -26,6 +27,7 @@ export default function Berita() {
     category: "Kategori",
     date: "6 Juli 2025",
     title: "Lorem Ipsum Dolor Sit Amet",
+    slug: "lorem-ipsum-dolor-sit-amet",
     description:
       "Lorem ipsum dolor sit amet consectetur. Aliquam aliquam in faucibus pretium sit habitant vitae.",
   }));
@@ -48,7 +50,7 @@ export default function Berita() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-28 mt-3 py-24">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16 font-manrope">
             {news.map((item, index) => (
-              <NewsCard key={index} {...item} />
+              <NewsCard key={index} {...item} slug={item.slug} />
             ))}
           </div>
 
