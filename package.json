@@ -47,6 +47,7 @@
     "@types/bcryptjs": "^2.4.2",
     "@types/next": "^13.4.21",
     "@types/mongoose": "^5.11.97",
-    "@types/swr": "^0.0.13"
+    "@types/swr": "^0.0.13",
+    "@types/rate-limiter-flexible": "^2.2.1"
   }
 }
