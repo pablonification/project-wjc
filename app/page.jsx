@@ -1,12 +1,20 @@
-import { Navbar, Footer, KegiatanContainer } from "./components";
+import HeroSection from './home-sections/HeroSection';
+import BeritaSection from './home-sections/BeritaSection';
+import KegiatanSection from './home-sections/KegiatanSection';
+import TentangSection from './home-sections/TentangSection';
+
+import{Navbar, Footer} from './components'
 
 const page = () => {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-black">
       <Navbar />
-      <div className="my-40 flex-1">test</div>
-      <KegiatanContainer />
-
+      <div className="flex-1">
+        <HeroSection/>
+        <KegiatanSection/>
+        <TentangSection/>
+        <BeritaSection/>
+      </div>
       <Footer />
     </div>
   );
