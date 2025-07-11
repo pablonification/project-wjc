@@ -26,17 +26,17 @@ const kegiatanData = [
 
 const KegiatanSection = () => {
   return (
-    <div className='text-white mx-18 my-20 flex flex-col gap-10'>
-      <div className="flex justify-between">
+    <div className='text-white mx-6 lg:mx-18 my-10 flex flex-col gap-10'>
+      <div className="flex justify-between items-center">
         <h1 className="text-h2 lg:text-h1">Kegiatan Terkini</h1>
         <div>
-          <a href="/kegiatan" className="flex gap-2">
+          <a href="/kegiatan" className="flex gap-2 items-center">
             <p className="text-b1 lg:text-[20px]">Lihat Semua</p>
             <Image src={ArrowOutward} alt="arrow"/>
           </a>
         </div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {kegiatanData.map((kegiatan) => (
           <HomeKegiatanCard
             key={kegiatan.id}
