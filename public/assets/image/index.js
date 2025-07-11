@@ -4,6 +4,9 @@ import Location from './Location.png'
 import Instagram from './Instagram.png'
 import Facebook from './Facebook.png'
 import Youtube from './Youtube.png'
+import Hero from './Hero.png'
+import MedDocs from './MedDocs.png'
+import Placeholder from './Placeholder.png'
 
 export{
     Logo,
@@ -11,5 +14,8 @@ export{
     Location,
     Instagram,
     Facebook,
-    Youtube
+    Youtube,
+    Hero,
+    MedDocs,
+    Placeholder,
 }
