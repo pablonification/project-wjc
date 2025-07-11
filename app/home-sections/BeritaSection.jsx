@@ -36,11 +36,11 @@ const BeritaSection = () => {
     }
   ]
   return (
-    <div className='flex flex-col gap-6 mx-18 my-20'>
+    <div className='flex flex-col gap-6 mx-6 lg:mx-18 my-10'>
       <div className='text-white flex items-center justify-between '>
         <h1 className='text-h2 lg:text-h1'>Berita Terkini</h1>
         <div>
-          <a href="/berita" className='flex gap-2'>
+          <a href="/berita" className='flex gap-2 items-center'>
             <p className='text-b1 lg:text-[20px]'>Lihat Semua</p>
             <Image
               src={ArrowOutward}
