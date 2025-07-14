@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  // --- PERUBAHAN DI SINI ---
+  // Secara eksplisit memberitahu Prisma untuk menempatkan client
+  // di dalam direktori node_modules. Ini meningkatkan keandalan.
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+// --- INI BAGIAN PENTING ---
+// Mendefinisikan model pertama kita: Whitelist.
+// Setiap 'model' akan menjadi sebuah 'collection' di database MongoDB Anda.
+model Whitelist {
+  // 'id' adalah primary key.
+  // @id menandakannya sebagai primary key.
+  // @default(auto()) membuat MongoDB meng-generate ID unik secara otomatis.
+  // @map("_id") memberitahu Prisma untuk menggunakan nama field `_id` di MongoDB, sesuai standar.
+  // @db.ObjectId memberitahu Prisma bahwa tipe datanya adalah ObjectId khas MongoDB.
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Field untuk menyimpan nomor telepon.
+  // @unique memastikan tidak ada dua baris data yang memiliki nomor telepon yang sama.
+  // Ini sangat penting untuk mencegah duplikasi.
+  phoneNumber String @unique
+
+  // Field untuk menyimpan kapan data ini dibuat.
+  // @default(now()) akan otomatis mengisi field ini dengan waktu saat ini ketika data baru dibuat.
+  createdAt   DateTime @default(now())
+  user        User?
+}
+
+// OTP Sementara
+model Otp {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  phoneNumber String
+  token       String   // Akan menyimpan hash dari OTP + expiry
+  expires     DateTime // Waktu kedaluwarsa OTP
+  createdAt   DateTime @default(now())
+}
+
+// User
+model User {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  phoneNumber     String   @unique
+  password        String   // Akan menyimpan password yang sudah di-hash
+  role            Role     @default(MEMBER)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  whitelistId     String    @unique @db.ObjectId
+  whitelist       Whitelist @relation(fields: [whitelistId], references: [id], onDelete: Cascade)
+}
