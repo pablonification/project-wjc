@@ -2,12 +2,17 @@
 import { Navbar, Footer } from "../components";
 import Image from "next/image";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
-const NewsCard = ({ category, date, title, description }) => {
+const NewsCard = ({ category, date, title, description, slug, imageUrl }) => {
   return (
-    <div className="flex flex-col font-manrope">
+    <Link href={`/berita/${slug}`} className="flex flex-col font-manrope">
       {/* Image placeholder */}
-      <div className="w-full h-56 bg-[#D9D9D9]" />
+      <div className="w-full h-56 bg-[#D9D9D9] relative overflow-hidden">
+        {imageUrl && (
+          <Image src={imageUrl} alt={title} fill className="object-cover" />
+        )}
+      </div>
 
       {/* Content */}
       <div className="mt-4">
@@ -17,18 +22,29 @@ const NewsCard = ({ category, date, title, description }) => {
         <h3 className="text-sh1 text-white font-semibold mb-1">{title}</h3>
         <p className="text-b2 text-gray-400 line-clamp-2">{description}</p>
       </div>
-    </div>
+    </Link>
   );
 };
 
 export default function Berita() {
-  const news = Array.from({ length: 6 }).map((_, idx) => ({
-    category: "Kategori",
-    date: "6 Juli 2025",
-    title: "Lorem Ipsum Dolor Sit Amet",
-    description:
-      "Lorem ipsum dolor sit amet consectetur. Aliquam aliquam in faucibus pretium sit habitant vitae.",
-  }));
+  const [news, setNews] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const res = await fetch("/api/berita");
+        if (!res.ok) throw new Error("Gagal mengambil data berita");
+        const data = await res.json();
+        setNews(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNews();
+  }, []);
 
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
@@ -47,9 +63,27 @@ export default function Berita() {
       <section className="bg-black flex-grow">
         <div className="container mx-auto px-4 sm:px-6 lg:px-28 mt-3 py-24">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16 font-manrope">
-            {news.map((item, index) => (
-              <NewsCard key={index} {...item} />
-            ))}
+            {loading ? (
+              <p className="text-white">Memuat...</p>
+            ) : news.length ? (
+              news.map((item, index) => (
+                <NewsCard
+                  key={index}
+                  category={item.category}
+                  date={new Date(item.createdAt).toLocaleDateString("id-ID", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                  title={item.title}
+                  description={item.content}
+                  slug={item.slug}
+                  imageUrl={item.imageUrl}
+                />
+              ))
+            ) : (
+              <p className="text-white">Belum ada berita.</p>
+            )}
           </div>
 
           <div className="text-center mt-20 flex justify-center">

@@ -1,11 +1,14 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const navLinks = [
-  { name: 'Whitelist', href: '/dashboard' },
-  { name: 'Manajemen User', href: '/dashboard/manajemen-user' },
+  { name: "Whitelist", href: "/dashboard" },
+  { name: "Manajemen User", href: "/dashboard/manajemen-user" },
+  { name: "Manajemen Merchandise", href: "/dashboard/manajemen-merchandise" },
+  { name: "Manajemen Kegiatan", href: "/dashboard/manajemen-kegiatan" },
+  { name: "Manajemen Berita", href: "/dashboard/manajemen-berita" },
 ];
 
 const Sidebar = () => {
@@ -26,8 +29,8 @@ const Sidebar = () => {
                   href={link.href}
                   className={`block py-3 px-4 rounded-lg transition-colors duration-200 ${
                     isActive
-                      ? 'bg-indigo-100 text-indigo-700 font-semibold'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? "bg-indigo-100 text-indigo-700 font-semibold"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }`}
                 >
                   {link.name}

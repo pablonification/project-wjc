@@ -1,6 +1,6 @@
 "use client";
 import { Navbar, Footer, Button } from "../components";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -25,7 +25,15 @@ const CalendarIcon = (props) => (
   </svg>
 );
 
-const KegiatanCard = ({ title, description, date, location, status }) => {
+const KegiatanCard = ({
+  title,
+  description,
+  date,
+  location,
+  status,
+  slug,
+  imageUrl,
+}) => {
   const statusStyles = {
     "Sedang Berlangsung": "bg-[#F5CB58] text-black",
     Selesai: "bg-[#97D077] text-black",
@@ -33,7 +41,11 @@ const KegiatanCard = ({ title, description, date, location, status }) => {
 
   return (
     <div className="flex font-manrope">
-      <div className="w-1/3 bg-[#D9D9D9]" />
+      <div className="w-1/3 bg-[#D9D9D9] relative overflow-hidden">
+        {imageUrl && (
+          <Image src={imageUrl} alt={title} fill className="object-cover" />
+        )}
+      </div>
       <div className="p-8 flex flex-col flex-grow">
         <div>
           {status && (
@@ -69,8 +81,8 @@ const KegiatanCard = ({ title, description, date, location, status }) => {
             </span>
           </div>
 
-          <a
-            href="#"
+          <Link
+            href={`/kegiatan/${slug}`}
             className="text-white font-semibold flex items-center group text-sh1"
           >
             Daftar Sekarang
@@ -81,7 +93,7 @@ const KegiatanCard = ({ title, description, date, location, status }) => {
               height={24}
               className="ml-2 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1"
             />
-          </a>
+          </Link>
         </div>
       </div>
     </div>
@@ -90,48 +102,38 @@ const KegiatanCard = ({ title, description, date, location, status }) => {
 
 export default function Kegiatan() {
   const [activeTab, setActiveTab] = useState("Semua");
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const activities = [
-    {
-      title: "Judul Kegiatan",
-      description:
-        "Lorem ipsum dolor sit amet consectetur. In facilisis dolor ut at non. Ultrices pharetra consectetur tempus iaculis consequat amet phasellus ac.",
-      date: "12-15 Jul 2025",
-      location: "Alamat lokasi",
-      status: "Mendatang",
-    },
-    {
-      title: "Judul Kegiatan",
-      description:
-        "Lorem ipsum dolor sit amet consectetur. In facilisis dolor ut at non. Ultrices pharetra consectetur tempus iaculis consequat amet phasellus ac.",
-      date: "12-15 Jul 2025",
-      location: "Alamat lokasi",
-      status: "Mendatang",
-    },
-    {
-      title: "Judul Kegiatan",
-      description:
-        "Lorem ipsum dolor sit amet consectetur. In facilisis dolor ut at non. Ultrices pharetra consectetur tempus iaculis consequat amet phasellus ac.",
-      date: "12-15 Jul 2025",
-      location: "Alamat lokasi",
-      status: "Sedang Berlangsung",
-    },
-    {
-      title: "Judul Kegiatan",
-      description:
-        "Lorem ipsum dolor sit amet consectetur. In facilisis dolor ut at non. Ultrices pharetra consectetur tempus iaculis consequat amet phasellus ac.",
-      date: "12-15 Jul 2025",
-      location: "Alamat lokasi",
-      status: "Selesai",
-    },
-  ];
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const res = await fetch("/api/kegiatan");
+        if (!res.ok) throw new Error("Gagal mengambil data kegiatan");
+        const data = await res.json();
+        setActivities(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchActivities();
+  }, []);
 
   const tabs = ["Semua", "Sedang Berlangsung", "Mendatang", "Selesai"];
 
   const filteredActivities =
     activeTab === "Semua"
       ? activities
-      : activities.filter((act) => act.status === activeTab);
+      : activities.filter((act) => {
+          const statusMap = {
+            UPCOMING: "Mendatang",
+            ONGOING: "Sedang Berlangsung",
+            COMPLETED: "Selesai",
+          };
+          return statusMap[act.status] === activeTab;
+        });
 
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
@@ -168,9 +170,37 @@ export default function Kegiatan() {
           </div>
 
           <div className="grid grid-cols-1 gap-12 font-manrope">
-            {filteredActivities.map((activity, index) => (
-              <KegiatanCard key={index} {...activity} />
-            ))}
+            {loading ? (
+              <p className="text-white">Memuat...</p>
+            ) : filteredActivities.length ? (
+              filteredActivities.map((activity, index) => (
+                <KegiatanCard
+                  key={index}
+                  title={activity.title}
+                  description={activity.description}
+                  date={new Date(activity.dateStart).toLocaleDateString(
+                    "id-ID",
+                    {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    }
+                  )}
+                  location={activity.location}
+                  status={
+                    activity.status === "UPCOMING"
+                      ? "Mendatang"
+                      : activity.status === "ONGOING"
+                      ? "Sedang Berlangsung"
+                      : "Selesai"
+                  }
+                  slug={activity.slug}
+                  imageUrl={activity.imageUrl}
+                />
+              ))
+            ) : (
+              <p className="text-white">Tidak ada kegiatan.</p>
+            )}
           </div>
 
           <div className="text-center mt-12 flex justify-center">
