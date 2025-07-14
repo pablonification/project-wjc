@@ -1,6 +1,7 @@
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Button from "./Button";
-import KegiatanContainer from "./KegiatanContainer";
+import HomeKegiatanCard from "./Home-KegiatanCard";
+import HomeBeritaCard from "./Home-BeritaCard";
 
-export { Navbar, Footer, Button, KegiatanContainer };
+export { Navbar, Footer, Button, HomeKegiatanCard, HomeBeritaCard};
