@@ -4,13 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
-const ProductCard = ({ name, price, imageUrl, slug }) => {
+const ProductCard = ({ name, price, imageUrl, imageUrls, slug }) => {
+  const displayUrl = imageUrl || (Array.isArray(imageUrls) ? imageUrls[0] : null);
   return (
     <Link href={`/merchandise/${slug}`} className="flex flex-col font-manrope group">
       <div className="w-full h-72 bg-[#D9D9D9] relative overflow-hidden">
-        {imageUrl && (
+        {displayUrl && (
           <Image
-            src={imageUrl}
+            src={displayUrl}
             alt={name}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"

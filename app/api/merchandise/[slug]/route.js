@@ -32,3 +32,70 @@ export async function GET(request, { params }) {
     );
   }
 }
+
+export async function PUT(request, { params }) {
+  try {
+    const { slug } = params;
+    const body = await request.json();
+    const { name, price, category, description, imageUrls } = body;
+
+    if (!name || !price || !category) {
+      return NextResponse.json(
+        { message: "Nama, harga, dan kategori wajib diisi" },
+        { status: 400 }
+      );
+    }
+
+    const updatedItem = await prisma.merchandise.update({
+      where: { slug },
+      data: {
+        name,
+        price: parseInt(price, 10),
+        category,
+        description,
+        imageUrls: Array.isArray(imageUrls) ? imageUrls : [],
+      },
+    });
+
+    return NextResponse.json(updatedItem, { status: 200 });
+  } catch (error) {
+    console.error(`Error updating product with slug ${params.slug}:`, error);
+     if (error.code === 'P2025') {
+        return NextResponse.json(
+            { message: "Produk yang akan diupdate tidak ditemukan." },
+            { status: 404 }
+        );
+    }
+    return NextResponse.json(
+      { message: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request, { params }) {
+    try {
+        const { slug } = params;
+
+        await prisma.merchandise.delete({
+            where: { slug },
+        });
+
+        return NextResponse.json(
+            { message: "Produk berhasil dihapus" },
+            { status: 200 }
+        );
+    } catch (error) {
+        console.error(`Error deleting product with slug ${params.slug}:`, error);
+        if (error.code === 'P2025') {
+            return NextResponse.json(
+                { message: "Produk yang akan dihapus tidak ditemukan." },
+                { status: 404 }
+            );
+        }
+        return NextResponse.json(
+            { message: "Gagal menghapus produk" },
+            { status: 500 }
+        );
+    }
+}

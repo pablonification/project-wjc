@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { uploadToCloudinary } from "@/lib/uploadImage";
+import Link from "next/link";
 
 const BeritaDashboard = () => {
   const [news, setNews] = useState([]);
@@ -14,9 +15,9 @@ const BeritaDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
     const fetchNews = async () => {
       try {
+      setLoading(true);
         const res = await fetch("/api/berita");
         if (!res.ok) throw new Error("Gagal mengambil data berita");
         const data = await res.json();
@@ -27,6 +28,8 @@ const BeritaDashboard = () => {
         setLoading(false);
       }
     };
+
+  useEffect(() => {
     fetchNews();
   }, []);
 
@@ -40,6 +43,7 @@ const BeritaDashboard = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
     try {
       let imageUrl = form.imageUrl;
 
@@ -47,7 +51,8 @@ const BeritaDashboard = () => {
         imageUrl = await uploadToCloudinary(form.file);
       }
 
-      const payload = { ...form, imageUrl };
+      // The backend will create the slug
+      const payload = { ...form, imageUrl, description: form.content }; // description was missing
 
       const res = await fetch("/api/berita", {
         method: "POST",
@@ -58,8 +63,7 @@ const BeritaDashboard = () => {
         const err = await res.json();
         throw new Error(err.message || "Gagal menambah berita");
       }
-      const newItem = await res.json();
-      setNews([newItem, ...news]);
+      await fetchNews(); // Refetch all news
       setForm({
         title: "",
         category: "",
@@ -67,15 +71,31 @@ const BeritaDashboard = () => {
         imageUrl: "",
         file: null,
       });
-      setError(null);
     } catch (err) {
       setError(err.message);
     }
   };
 
+  const handleDelete = async (slug) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus berita ini?")) {
+      try {
+        const res = await fetch(`/api/berita/${slug}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.message || "Gagal menghapus berita");
+        }
+        await fetchNews(); // Refetch
+      } catch (err) {
+        setError(err.message);
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md">
+      <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-md">
         <h1 className="text-2xl font-bold mb-6">Kelola Berita</h1>
 
         {/* Form */}
@@ -86,6 +106,7 @@ const BeritaDashboard = () => {
             onChange={handleChange}
             placeholder="Judul"
             className="w-full border px-3 py-2 rounded"
+            required
           />
           <input
             name="category"
@@ -106,10 +127,11 @@ const BeritaDashboard = () => {
             placeholder="Konten"
             rows={5}
             className="w-full border px-3 py-2 rounded"
+            required
           />
           <button
             type="submit"
-            className="px-4 py-2 bg-indigo-600 text-white rounded"
+            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
           >
             Tambah Berita
           </button>
@@ -118,21 +140,39 @@ const BeritaDashboard = () => {
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
         {/* List */}
+        <div className="mt-8">
+          <h2 className="text-xl font-bold mb-4">Daftar Berita</h2>
         {loading ? (
           <p>Memuat data...</p>
-        ) : news.length ? (
-          <ul className="space-y-4">
+          ) : news.length > 0 ? (
+            <div className="space-y-4">
             {news.map((item) => (
-              <li key={item.id} className="border p-4 rounded">
-                <h2 className="font-semibold">{item.title}</h2>
+                <div key={item.id} className="border p-4 rounded-lg flex justify-between items-center">
+                  <div>
+                    <h3 className="font-semibold text-lg">{item.title}</h3>
                 <p className="text-sm text-gray-600">{item.category}</p>
-                <p className="text-gray-800 line-clamp-2">{item.content}</p>
-              </li>
+                    <p className="text-xs text-gray-400">
+                      {new Date(item.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Link href={`/dashboard/manajemen-berita/edit/${item.slug}`} className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+                        Edit
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(item.slug)}
+                      className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
             ))}
-          </ul>
+            </div>
         ) : (
           <p>Tidak ada berita.</p>
         )}
+        </div>
       </div>
     </div>
   );

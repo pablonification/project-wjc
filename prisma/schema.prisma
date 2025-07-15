@@ -65,6 +65,11 @@ model User {
 
   whitelistId     String    @unique @db.ObjectId
   whitelist       Whitelist @relation(fields: [whitelistId], references: [id], onDelete: Cascade)
+  
+  // Relasi ke Address, Order, dan ActivityRegistration
+  addresses       Address[]
+  orders          Order[]
+  activityRegistrations ActivityRegistration[]
 }
 
 // Tambahan enum status untuk kegiatan
@@ -96,9 +101,61 @@ model Kegiatan {
   dateEnd     DateTime?
   location    String
   status      ActivityStatus @default(UPCOMING)
+  registrationFee Int? // Biaya pendaftaran dasar
   imageUrl    String?
+  attachmentUrls String[]
+  
+  // Accommodation info
+  accommodationName String?
+  accommodationPriceSharing Int? // Price for sharing room
+  accommodationPriceSingle Int?  // Price for single room
+  
+  // T-shirt pricing by size
+  tshirtPriceS    Int?
+  tshirtPriceM    Int?
+  tshirtPriceL    Int?
+  tshirtPriceXL   Int?
+  tshirtPriceXXL  Int?
+  tshirtPriceXXXL Int?
+  
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+  
+  // Relations
+  registrations ActivityRegistration[]
+}
+
+// Model ActivityRegistration untuk menyimpan data pendaftaran kegiatan
+model ActivityRegistration {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  
+  // User info
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Activity info
+  activityId String   @db.ObjectId
+  activity   Kegiatan @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  
+  // Registration details
+  tshirtSize String   // S, M, L, XL, XXL, XXXL
+  
+  // Accommodation options
+  needAccommodation Boolean  @default(false)
+  roomType          String?  // "sharing" or "single"
+  
+  // Pricing
+  tshirtPrice       Int
+  accommodationPrice Int     @default(0)
+  totalPrice        Int
+  
+  // Payment info
+  paymentStatus     PaymentStatus @default(PENDING)
+  paymentId         String?
+  paymentUrl        String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // Model Merchandise untuk menyimpan data produk
@@ -112,6 +169,9 @@ model Merchandise {
   imageUrls   String[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  
+  // Relasi ke Order
+  orders      Order[]
 }
 
 model Document {
@@ -119,4 +179,91 @@ model Document {
   name      String
   url       String
   createdAt DateTime @default(now())
+}
+
+// Model Address untuk menyimpan alamat pelanggan
+model Address {
+  id              String @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String @db.ObjectId
+  user            User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Data wajib
+  namaLengkap     String
+  alamatLengkap   String
+  kodePos         String
+  nomorTelepon    String
+  email           String
+  
+  // Data opsional
+  namaPenerima    String?
+  nomorTeleponPenerima String?
+  instruksiKhusus String?
+  
+  // Untuk integrasi RajaOngkir
+  provinsi        String
+  kota            String
+  kecamatan       String
+  kelurahan       String
+  
+  isDefault       Boolean @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relasi ke Order
+  orders          Order[]
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum ShippingMethod {
+  PICKUP      // Ambil di sekretariat
+  DELIVERY    // Dikirim via ekspedisi
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+}
+
+// Model Order untuk menyimpan pesanan
+model Order {
+  id                String @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String @db.ObjectId
+  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  merchandiseId     String @db.ObjectId
+  merchandise       Merchandise @relation(fields: [merchandiseId], references: [id])
+  
+  addressId         String? @db.ObjectId
+  address           Address? @relation(fields: [addressId], references: [id])
+  
+  quantity          Int
+  unitPrice         Int
+  subtotal          Int
+  shippingCost      Int @default(0)
+  total             Int
+  
+  shippingMethod    ShippingMethod
+  courierService    String? // JNE, TIKI, POS, dll
+  
+  status            OrderStatus @default(PENDING)
+  
+  // Xendit payment link data
+  xenditPaymentId   String?
+  xenditPaymentUrl  String?
+  xenditStatus      String?
+  
+  // Tracking
+  resi              String?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }

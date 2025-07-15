@@ -1,10 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { uploadToCloudinary } from "@/lib/uploadImage";
-import Link from "next/link";
 
-const KegiatanDashboard = () => {
-  const [activities, setActivities] = useState([]);
+const EditKegiatanPage = () => {
+  const router = useRouter();
+  const params = useParams();
+  const { slug } = params;
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -15,6 +18,7 @@ const KegiatanDashboard = () => {
     imageUrl: "",
     coverFile: null,
     attachmentFiles: [],
+    attachmentUrls: [],
     // Accommodation fields
     accommodationName: "",
     accommodationPriceSharing: "",
@@ -30,24 +34,51 @@ const KegiatanDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const fetchActivities = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/kegiatan");
-      if (!res.ok) throw new Error("Gagal mengambil data kegiatan");
-      const data = await res.json();
-      setActivities(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [existingCover, setExistingCover] = useState("");
+  const [existingAttachments, setExistingAttachments] = useState([]);
 
   useEffect(() => {
-    fetchActivities();
-  }, []);
+    if (slug) {
+      const fetchKegiatan = async () => {
+        try {
+          const res = await fetch(`/api/kegiatan/${slug}`);
+          if (!res.ok) throw new Error("Gagal mengambil data kegiatan");
+          const data = await res.json();
+          setForm({
+            title: data.title,
+            description: data.description || "",
+            dateStart: data.dateStart ? new Date(data.dateStart).toISOString().split('T')[0] : "",
+            dateEnd: data.dateEnd ? new Date(data.dateEnd).toISOString().split('T')[0] : "",
+            location: data.location || "",
+            status: data.status || "UPCOMING",
+            imageUrl: data.imageUrl || "",
+            attachmentUrls: data.attachmentUrls || [],
+            coverFile: null,
+            attachmentFiles: [],
+            // Accommodation fields
+            accommodationName: data.accommodationName || "",
+            accommodationPriceSharing: data.accommodationPriceSharing || "",
+            accommodationPriceSingle: data.accommodationPriceSingle || "",
+            // T-shirt pricing fields
+            tshirtPriceS: data.tshirtPriceS || "",
+            tshirtPriceM: data.tshirtPriceM || "",
+            tshirtPriceL: data.tshirtPriceL || "",
+            tshirtPriceXL: data.tshirtPriceXL || "",
+            tshirtPriceXXL: data.tshirtPriceXXL || "",
+            tshirtPriceXXXL: data.tshirtPriceXXXL || "",
+            registrationFee: data.registrationFee || "",
+          });
+          setExistingCover(data.imageUrl || "");
+          setExistingAttachments(data.attachmentUrls || []);
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchKegiatan();
+    }
+  }, [slug]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -60,7 +91,7 @@ const KegiatanDashboard = () => {
   const handleAttachmentFilesChange = (e) => {
     if (e.target.files.length > 4) {
       alert("Anda hanya dapat mengunggah maksimal 4 gambar attachment.");
-      e.target.value = ""; // Clear the file input
+      e.target.value = "";
       return;
     }
     setForm({ ...form, attachmentFiles: Array.from(e.target.files) });
@@ -70,13 +101,13 @@ const KegiatanDashboard = () => {
     e.preventDefault();
     setError(null);
     try {
-      let coverImageUrl = "";
+      let coverImageUrl = existingCover;
       if (form.coverFile) {
         coverImageUrl = await uploadToCloudinary(form.coverFile);
       }
 
-      let attachmentImageUrls = [];
-      if (form.attachmentFiles.length) {
+      let attachmentImageUrls = existingAttachments;
+      if (form.attachmentFiles.length > 0) {
         attachmentImageUrls = await Promise.all(
           form.attachmentFiles.map((file) => uploadToCloudinary(file))
         );
@@ -88,69 +119,30 @@ const KegiatanDashboard = () => {
         attachmentUrls: attachmentImageUrls
       };
 
-      const res = await fetch("/api/kegiatan", {
-        method: "POST",
+      const res = await fetch(`/api/kegiatan/${slug}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.message || "Gagal menambah kegiatan");
+        throw new Error(err.message || "Gagal mengupdate kegiatan");
       }
-      await fetchActivities();
-      setForm({
-        title: "",
-        description: "",
-        dateStart: "",
-        dateEnd: "",
-        location: "",
-        status: "UPCOMING",
-        imageUrl: "",
-        coverFile: null,
-        attachmentFiles: [],
-        // Accommodation fields
-        accommodationName: "",
-        accommodationPriceSharing: "",
-        accommodationPriceSingle: "",
-        registrationFee: "",
-        // T-shirt pricing fields
-        tshirtPriceS: "",
-        tshirtPriceM: "",
-        tshirtPriceL: "",
-        tshirtPriceXL: "",
-        tshirtPriceXXL: "",
-        tshirtPriceXXXL: "",
-      });
+
+      router.push("/dashboard/manajemen-kegiatan");
     } catch (err) {
       setError(err.message);
     }
   };
 
-  const handleDelete = async (slug) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus kegiatan ini?")) {
-      try {
-        const res = await fetch(`/api/kegiatan/${slug}`, {
-          method: "DELETE",
-        });
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.message || "Gagal menghapus kegiatan");
-        }
-        await fetchActivities(); // Refetch
-      } catch (err) {
-        setError(err.message);
-      }
-    }
-  };
-
+  if (loading) return <p>Memuat...</p>;
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-md">
-        <h1 className="text-2xl font-bold mb-6">Kelola Kegiatan</h1>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 mb-8">
+      <div className="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md">
+        <h1 className="text-2xl font-bold mb-6">Edit Kegiatan</h1>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
             name="title"
             value={form.title}
@@ -164,7 +156,7 @@ const KegiatanDashboard = () => {
             value={form.description}
             onChange={handleChange}
             placeholder="Deskripsi"
-            rows={4}
+            rows={5}
             className="w-full border px-3 py-2 rounded"
             required
           />
@@ -213,13 +205,23 @@ const KegiatanDashboard = () => {
             <option value="COMPLETED">Selesai</option>
           </select>
           <label className="block text-sm font-medium text-gray-700">Gambar Cover</label>
+          {existingCover && (
+            <img src={existingCover} alt="Current cover image" className="w-full h-auto rounded-lg mb-4" />
+          )}
           <input
             type="file"
             onChange={handleCoverFileChange}
             className="w-full border px-3 py-2 rounded"
             accept="image/*"
           />
-           <label className="block text-sm font-medium text-gray-700">Gambar Attachment (Maks. 4)</label>
+           <p className="text-sm text-gray-500">Unggah gambar baru untuk menggantikan yang lama.</p>
+
+          <label className="block text-sm font-medium text-gray-700 mt-4">Gambar Attachment (Maks. 4)</label>
+          <div className="flex flex-wrap gap-4">
+            {existingAttachments.map((url, index) => (
+                <img key={index} src={url} alt={`Attachment ${index + 1}`} className="w-24 h-24 rounded object-cover" />
+            ))}
+          </div>
           <input
             type="file"
             multiple
@@ -227,6 +229,7 @@ const KegiatanDashboard = () => {
             className="w-full border px-3 py-2 rounded"
             accept="image/*"
           />
+           <p className="text-sm text-gray-500">Unggah gambar baru untuk menggantikan semua attachment yang lama.</p>
           
           {/* Accommodation Section */}
           <div className="border-t pt-4">
@@ -313,56 +316,26 @@ const KegiatanDashboard = () => {
             </div>
           </div>
           
-          <button
-            type="submit"
-            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-          >
-            Tambah Kegiatan
-          </button>
+          <div className="flex space-x-4">
+            <button
+              type="submit"
+              className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+            >
+              Update Kegiatan
+            </button>
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
+            >
+              Batal
+            </button>
+          </div>
         </form>
-
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-
-        {/* List */}
-        <div className="mt-8">
-          <h2 className="text-xl font-bold mb-4">Daftar Kegiatan</h2>
-          {loading ? (
-            <p>Memuat data...</p>
-          ) : activities.length > 0 ? (
-            <div className="space-y-4">
-              {activities.map((item) => (
-                <div key={item.id} className="border p-4 rounded-lg flex justify-between items-center">
-                  <div>
-                    <h3 className="font-semibold text-lg">{item.title}</h3>
-                    <p className="text-sm text-gray-600">{item.location}</p>
-                    <p className="text-xs text-gray-400">
-                      {new Date(item.dateStart).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Link href={`/dashboard/manajemen-kegiatan/registrants/${item.slug}`} className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
-                      Peserta
-                    </Link>
-                    <Link href={`/dashboard/manajemen-kegiatan/edit/${item.slug}`} className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">
-                      Edit
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(item.slug)}
-                      className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p>Tidak ada kegiatan.</p>
-          )}
-        </div>
+        {error && <p className="text-red-500 mt-4">{error}</p>}
       </div>
     </div>
   );
 };
 
-export default KegiatanDashboard;
+export default EditKegiatanPage; 

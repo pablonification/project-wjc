@@ -30,6 +30,19 @@ export async function POST(request) {
       location,
       status,
       imageUrl,
+      attachmentUrls,
+      registrationFee,
+      // Accommodation fields
+      accommodationName,
+      accommodationPriceSharing,
+      accommodationPriceSingle,
+      // T-shirt pricing fields
+      tshirtPriceS,
+      tshirtPriceM,
+      tshirtPriceL,
+      tshirtPriceXL,
+      tshirtPriceXXL,
+      tshirtPriceXXXL,
     } = body;
 
     if (!title || !description || !dateStart || !location) {
@@ -55,7 +68,20 @@ export async function POST(request) {
         location,
         status,
         imageUrl,
+        attachmentUrls: Array.isArray(attachmentUrls) ? attachmentUrls : [],
+        registrationFee: registrationFee ? parseInt(registrationFee) : 0,
         slug,
+        // Accommodation fields
+        accommodationName: accommodationName || null,
+        accommodationPriceSharing: accommodationPriceSharing ? parseInt(accommodationPriceSharing) : null,
+        accommodationPriceSingle: accommodationPriceSingle ? parseInt(accommodationPriceSingle) : null,
+        // T-shirt pricing fields
+        tshirtPriceS: tshirtPriceS ? parseInt(tshirtPriceS) : null,
+        tshirtPriceM: tshirtPriceM ? parseInt(tshirtPriceM) : null,
+        tshirtPriceL: tshirtPriceL ? parseInt(tshirtPriceL) : null,
+        tshirtPriceXL: tshirtPriceXL ? parseInt(tshirtPriceXL) : null,
+        tshirtPriceXXL: tshirtPriceXXL ? parseInt(tshirtPriceXXL) : null,
+        tshirtPriceXXXL: tshirtPriceXXXL ? parseInt(tshirtPriceXXXL) : null,
       },
     });
 

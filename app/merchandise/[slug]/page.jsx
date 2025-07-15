@@ -1,15 +1,18 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Navbar, Footer } from "@/app/components";
 import Image from "next/image";
+import Link from "next/link";
 
 const DetailMerchandise = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeImage, setActiveImage] = useState("");
+  const [quantity, setQuantity] = useState(1);
   const params = useParams();
+  const router = useRouter();
   const { slug } = params;
 
   useEffect(() => {
@@ -34,6 +37,25 @@ const DetailMerchandise = () => {
       fetchProduct();
     }
   }, [slug]);
+
+  const handleBuyNow = () => {
+    // Simpan data produk dan quantity di localStorage untuk checkout
+    const checkoutData = {
+      product: product,
+      quantity: quantity,
+      subtotal: product.price * quantity
+    };
+    localStorage.setItem('checkoutData', JSON.stringify(checkoutData));
+    
+    // Redirect ke halaman checkout
+    router.push('/checkout');
+  };
+
+  const handleQuantityChange = (newQuantity) => {
+    if (newQuantity >= 1) {
+      setQuantity(newQuantity);
+    }
+  };
 
   if (loading) {
     return (
@@ -64,6 +86,20 @@ const DetailMerchandise = () => {
       <Navbar />
       <main className="flex-grow bg-black text-white">
         <div className="container mx-auto mt-20 px-4 sm:px-6 lg:px-28 py-16">
+          {/* Back button */}
+          <Link href="/merchandise">
+            <div className="flex items-center gap-2 text-sh1 text-gray-200 hover:text-white transition-colors mb-8 cursor-pointer group font-manrope">
+              <Image
+                src={"/arrow_back.svg"}
+                alt="Kembali"
+                width={24}
+                height={24}
+                className="transition-transform duration-200 group-hover:-translate-x-1"
+              />
+              Kembali
+            </div>
+          </Link>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Image Gallery */}
             <div className="flex flex-col gap-4">
@@ -113,7 +149,39 @@ const DetailMerchandise = () => {
                 </p>
               </div>
 
-              <button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-lg text-sh1 transition-colors duration-300">
+              {/* Quantity Selector */}
+              <div className="mb-8">
+                <label className="block text-gray-300 text-b1 mb-2">Jumlah:</label>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => handleQuantityChange(quantity - 1)}
+                    className="w-10 h-10 bg-gray-700 hover:bg-gray-600 text-white rounded-lg flex items-center justify-center"
+                    disabled={quantity <= 1}
+                  >
+                    -
+                  </button>
+                  <span className="text-h3 font-semibold w-12 text-center">{quantity}</span>
+                  <button
+                    onClick={() => handleQuantityChange(quantity + 1)}
+                    className="w-10 h-10 bg-gray-700 hover:bg-gray-600 text-white rounded-lg flex items-center justify-center"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {/* Total Price */}
+              <div className="mb-8">
+                <p className="text-gray-300 text-b1 mb-2">Total:</p>
+                <p className="text-h2 font-bold text-red-500">
+                  Rp{new Intl.NumberFormat("id-ID").format(product.price * quantity)}
+                </p>
+              </div>
+
+              <button 
+                onClick={handleBuyNow}
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-lg text-sh1 transition-colors duration-300"
+              >
                 Beli Sekarang
               </button>
             </div>

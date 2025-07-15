@@ -41,35 +41,35 @@ const KegiatanCard = ({
 
   return (
     <div className="flex font-manrope">
-      <div className="w-1/3 bg-[#D9D9D9] relative overflow-hidden">
+      <div className="w-1/3 flex-shrink-0 bg-[#D9D9D9] relative overflow-hidden">
         {imageUrl && (
           <Image src={imageUrl} alt={title} fill className="object-cover" />
         )}
       </div>
-      <div className="p-8 flex flex-col flex-grow">
+      <div className="p-8 flex flex-col flex-grow font-manrope">
         <div>
           {status && (
             <div className="mb-4">
               {status !== "Mendatang" && (
                 <span
-                  className={`inline-block px-3 py-1 text-sm font-semibold ${statusStyles[status]}`}
+                  className={`inline-block px-3 py-1 text-sm font-semibold font-manrope ${statusStyles[status]}`}
                 >
                   {status}
                 </span>
               )}
             </div>
           )}
-          <h3 className="text-h1 font-bold text-white mb-4">{title}</h3>
-          <p className="text-gray-400 leading-relaxed text-b1">{description}</p>
+          <h3 className="text-h1 font-bold text-white mb-4 font-manrope">{title}</h3>
+          <p className="text-gray-400 leading-relaxed text-b1 line-clamp-2 font-manrope">{description}</p>
         </div>
 
-        <div className="mt-auto pt-6 flex justify-between items-end">
-          <div className="flex items-center text-gray-400 text-b2">
-            <span className="flex items-center mr-6">
+        <div className="mt-auto pt-6 flex justify-between items-end font-manrope">
+          <div className="flex items-center text-gray-400 text-b2 font-manrope">
+            <span className="flex items-center mr-6 font-manrope">
               <CalendarIcon className="mr-2" />
               {date}
             </span>
-            <span className="flex items-center">
+            <span className="flex items-center font-manrope">
               <Image
                 src="/assets/image/Location.png"
                 alt="location"
@@ -83,9 +83,9 @@ const KegiatanCard = ({
 
           <Link
             href={`/kegiatan/${slug}`}
-            className="text-white font-semibold flex items-center group text-sh1"
+            className="text-white font-semibold flex items-center group text-sh1 font-manrope"
           >
-            Daftar Sekarang
+            {status === "Mendatang" ? "Daftar Sekarang" : "Lihat Detail"}
             <Image
               src="/assets/image/ArrowOutward.png"
               alt="arrow"
@@ -140,7 +140,7 @@ export default function Kegiatan() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="bg-[#1F1F1F]">
+      <section className="bg-[#1F1F1F] font-manrope">
         <div className="container mx-auto px-4 sm:px-6 lg:px-28 py-24">
           <h1 className="text-display font-manrope font-bold text-white translate-y-16">
             Kegiatan
@@ -149,7 +149,7 @@ export default function Kegiatan() {
       </section>
 
       {/* Main Content */}
-      <section className="bg-black flex-grow">
+      <section className="bg-black flex-grow font-manrope">
         <div className="container mx-auto px-4 sm:px-6 lg:px-28 py-24">
           <div className="border-b border-gray-700 mb-12 font-manrope">
             <div className="flex space-x-8 font-manrope">
@@ -171,7 +171,7 @@ export default function Kegiatan() {
 
           <div className="grid grid-cols-1 gap-12 font-manrope">
             {loading ? (
-              <p className="text-white">Memuat...</p>
+              <p className="text-white font-manrope">Memuat...</p>
             ) : filteredActivities.length ? (
               filteredActivities.map((activity, index) => (
                 <KegiatanCard
@@ -199,11 +199,11 @@ export default function Kegiatan() {
                 />
               ))
             ) : (
-              <p className="text-white">Tidak ada kegiatan.</p>
+              <p className="text-white font-manrope">Tidak ada kegiatan.</p>
             )}
           </div>
 
-          <div className="text-center mt-12 flex justify-center">
+          <div className="text-center mt-12 flex justify-center font-manrope">
             <Link href="/kegiatan">
               <button className="py-2 px-48 bg-[#403E3D] flex items-center gap-2 cursor-pointer font-manrope">
                 <p className="text-white font-manrope text-lg">Show More</p>
