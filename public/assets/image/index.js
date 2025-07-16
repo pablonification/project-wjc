@@ -7,6 +7,7 @@ import Youtube from './Youtube.png'
 import Hero from './Hero.png'
 import MedDocs from './MedDocs.png'
 import Placeholder from './Placeholder.png'
+import upload from './upload.png'
 
 export{
     Logo,
@@ -18,4 +19,5 @@ export{
     Hero,
     MedDocs,
     Placeholder,
+    upload
 }

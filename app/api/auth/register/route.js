@@ -5,17 +5,17 @@ import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
 export async function POST(request) {
   try {
-    const { name, password, phoneNumber: rawPhoneNumber } = await request.json();
+    const { name, nickname, chapter, password, phoneNumber: rawPhoneNumber, ktpUrl, ktpPublicId } = await request.json();
 
     // Validasi input dasar
-    if (!name || !password || !rawPhoneNumber) {
+    if (!name || !nickname || !chapter || !password || !rawPhoneNumber || !ktpUrl) {
       return NextResponse.json({ message: 'Semua field wajib diisi.' }, { status: 400 });
     }
     if (password.length < 6) {
       return NextResponse.json({ message: 'Password minimal harus 6 karakter.' }, { status: 400 });
     }
 
-    // Normalisasi nomor telepon
+    // Normalisasi nomor telepon (ubah ke format yg sesuai)
     const phoneNumberObj = parsePhoneNumberFromString(rawPhoneNumber, 'ID');
     if (!phoneNumberObj || !phoneNumberObj.isValid()) {
       return NextResponse.json({ message: 'Format nomor telepon tidak valid.' }, { status: 400 });
@@ -35,27 +35,28 @@ export async function POST(request) {
       where: { phoneNumber: normalizedPhoneNumber },
     });
     if (!whitelistEntry) {
-      // Seharusnya tidak terjadi jika alur OTP benar, tapi ini sebagai pengaman
       return NextResponse.json({ message: 'Nomor telepon tidak diizinkan.' }, { status: 403 });
     }
 
-    // Hashing password sebelum disimpan (SANGAT PENTING!)
+    // Hashing password sebelum disimpan
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Membuat user baru di database
     const user = await prisma.user.create({
       data: {
         name,
+        nickname,
+        chapter,
         phoneNumber: normalizedPhoneNumber,
         password: hashedPassword,
-        // Menghubungkan user ke whitelist
+        ktpUrl,
+        ktpPublicId,
         whitelist: {
           connect: { id: whitelistEntry.id },
         },
       },
     });
 
-    // Menghapus password dari objek yang dikirim kembali ke client
     const { password: _, ...userWithoutPassword } = user;
 
     return NextResponse.json(userWithoutPassword, { status: 201 });

@@ -14,11 +14,21 @@ export async function GET() {
   try {
     // Verifikasi token menggunakan secret key
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // Mengirim kembali data penting dari token (nama dan role)
-    return NextResponse.json({ user: { name: decoded.name, role: decoded.role } }, { status: 200 });
-  } catch (error) {
 
+    // Kirim semua data penting dari token
+    return NextResponse.json({
+      user: {
+        id: decoded.userId,
+        name: decoded.name,
+        role: decoded.role,
+        phoneNumber: decoded.phoneNumber,
+        nickname: decoded.nickname,  
+        chapter: decoded.chapter,
+        ktpUrl: decoded.ktpUrl,
+        ktpPublicId: decoded.ktpPublicId,
+      }
+    }, { status: 200 });
+  } catch (error) {
     // Jika token tidak valid (misal: kedaluwarsa atau salah), dianggap tidak ada sesi
     return NextResponse.json({ user: null }, { status: 200 });
   }

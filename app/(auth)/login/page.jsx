@@ -2,12 +2,14 @@
 import Image from "next/image";
 import { MedDocs } from "../../../public/assets/image";
 import {Button } from "../../components";
+import { useSession } from "../../context/SessionContext";
 
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation'; // Menggunakan App Router's navigation
 
 const LoginPage = () => {
+  const { fetchSession } = useSession();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -35,6 +37,7 @@ const LoginPage = () => {
       const data = await response.json();
 
       if (response.ok) {
+        await fetchSession(); 
         router.push('/dashboard');
       } else {
         if (data.message === 'No. telpon tidak ditemukan.') {

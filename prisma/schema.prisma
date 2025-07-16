@@ -57,8 +57,12 @@ model Otp {
 model User {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
   name            String
+  nickname        String?   // Nama Panggilan
+  chapter         String?   // Asal Chapter
   phoneNumber     String   @unique
   password        String   // Akan menyimpan password yang sudah di-hash
+  ktpUrl          String?   // URL Foto KTP
+  ktpPublicId     String?
   role            Role     @default(MEMBER)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -66,7 +70,6 @@ model User {
   whitelistId     String    @unique @db.ObjectId
   whitelist       Whitelist @relation(fields: [whitelistId], references: [id], onDelete: Cascade)
   
-  // Relasi ke Address, Order, dan ActivityRegistration
   addresses       Address[]
   orders          Order[]
   activityRegistrations ActivityRegistration[]
