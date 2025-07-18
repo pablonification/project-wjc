@@ -4,6 +4,47 @@ import { useRouter } from "next/navigation";
 import { Navbar, Footer } from "@/app/components";
 import Image from "next/image";
 
+const CheckoutPageSkeleton = () => (
+    <main className="flex-grow bg-black text-white animate-pulse">
+      <div className="container mx-auto mt-20 px-4 sm:px-6 lg:px-28 py-16">
+        <div className="h-12 w-1/3 bg-gray-700 rounded mb-8" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column Skeleton */}
+          <div className="lg:col-span-2 space-y-8">
+            <div className="bg-gray-900 p-6 rounded-lg">
+              <div className="h-8 w-1/2 bg-gray-700 rounded mb-4" />
+              <div className="space-y-4">
+                <div className="h-6 w-3/4 bg-gray-700 rounded" />
+                <div className="h-6 w-3/4 bg-gray-700 rounded" />
+              </div>
+            </div>
+            <div className="bg-gray-900 p-6 rounded-lg">
+              <div className="h-8 w-1/2 bg-gray-700 rounded mb-4" />
+              <div className="h-6 w-full bg-gray-700 rounded" />
+            </div>
+          </div>
+          {/* Right Column Skeleton */}
+          <div className="bg-gray-900 p-6 rounded-lg h-fit">
+            <div className="h-8 w-1/2 bg-gray-700 rounded mb-4" />
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="w-16 h-16 bg-gray-700 rounded-lg" />
+              <div className="flex-1 space-y-2">
+                <div className="h-5 w-3/4 bg-gray-700 rounded" />
+                <div className="h-4 w-1/4 bg-gray-700 rounded" />
+              </div>
+            </div>
+            <div className="border-t border-gray-700 pt-4 space-y-2">
+              <div className="h-5 w-full bg-gray-700 rounded" />
+              <div className="h-5 w-full bg-gray-700 rounded" />
+              <div className="h-7 w-full bg-gray-700 rounded mt-2" />
+            </div>
+            <div className="h-12 w-full bg-gray-700 rounded mt-6" />
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+
 const CheckoutPage = () => {
   const router = useRouter();
   const [checkoutData, setCheckoutData] = useState(null);
@@ -12,17 +53,13 @@ const CheckoutPage = () => {
   const [shippingMethod, setShippingMethod] = useState("PICKUP");
   const [shippingOptions, setShippingOptions] = useState([]);
   const [selectedShipping, setSelectedShipping] = useState(null);
-
-  // State baru untuk Biteship
   const [destinationPostalCode, setDestinationPostalCode] = useState("");
-  const [originPostalCode] = useState("40198"); // ini harus dipastiin
-
+  const [originPostalCode] = useState("40198"); 
   const [loading, setLoading] = useState(true);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [user, setUser] = useState(null);
 
-  // Form state untuk alamat baru
   const [addressForm, setAddressForm] = useState({
     namaLengkap: "",
     alamatLengkap: "",
@@ -41,7 +78,6 @@ const CheckoutPage = () => {
 
   useEffect(() => {
     const initialize = async () => {
-      // Ambil data checkout dari localStorage
       const savedCheckoutData = localStorage.getItem("checkoutData");
       if (!savedCheckoutData) {
         router.push("/merchandise");
@@ -49,7 +85,6 @@ const CheckoutPage = () => {
       }
       setCheckoutData(JSON.parse(savedCheckoutData));
 
-      // Ambil profil user
       try {
         const resProfile = await fetch("/api/user/profile");
         if (resProfile.ok) {
@@ -57,7 +92,6 @@ const CheckoutPage = () => {
           setUser(dataProfile.user);
           await loadAddresses(dataProfile.user.id);
         } else {
-          // Jika tidak terautentikasi, redirect ke login
           router.push("/login");
           return;
         }
@@ -67,12 +101,11 @@ const CheckoutPage = () => {
         return;
       }
 
-      // Hapus pemanggilan loadProvinces()
       setLoading(false);
     };
 
     initialize();
-  }, [router]); // Tambahkan router ke dependency array
+  }, [router]);
 
   const loadAddresses = async (uid) => {
     try {
@@ -80,7 +113,6 @@ const CheckoutPage = () => {
       if (res.ok) {
         const data = await res.json();
         setAddresses(data);
-        // Set default address jika ada
         const defaultAddress = data.find((addr) => addr.isDefault);
         if (defaultAddress) {
           setSelectedAddress(defaultAddress);
@@ -91,8 +123,6 @@ const CheckoutPage = () => {
       console.error("Error loading addresses:", error);
     }
   };
-
-  // Hapus fungsi loadProvinces dan loadCities
 
   const calculateShipping = async () => {
     if (
@@ -110,7 +140,7 @@ const CheckoutPage = () => {
           name: checkoutData.product.name,
           description: "Merchandise",
           value: checkoutData.product.price,
-          weight: 1, // dalam kg, asumsikan berat per item 1kg
+          weight: 1,
           quantity: checkoutData.quantity,
         },
       ];
@@ -158,8 +188,6 @@ const CheckoutPage = () => {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-
-    // Hapus blok if name === 'provinsi'
   };
 
   const handleAddressSubmit = async (e) => {
@@ -181,10 +209,7 @@ const CheckoutPage = () => {
         const newAddress = await res.json();
         setAddresses((prev) => [newAddress, ...prev]);
         setSelectedAddress(newAddress);
-
-        // Set kode pos dari alamat baru
         setDestinationPostalCode(newAddress.kodePos);
-
         setShowAddressForm(false);
         setAddressForm({
           namaLengkap: "",
@@ -219,11 +244,9 @@ const CheckoutPage = () => {
       const orderData = {
         userId: user?.id,
         merchandiseId: checkoutData.product.id,
-        // Alamat sekarang tidak wajib karena bisa pickup
         addressId: selectedAddress ? selectedAddress.id : null,
         quantity: checkoutData.quantity,
         shippingMethod,
-        // Service sekarang ada di dalam objek pricing
         courierService:
           shippingMethod === "DELIVERY"
             ? `${selectedShipping?.company.toUpperCase()} - ${
@@ -231,7 +254,6 @@ const CheckoutPage = () => {
               }`
             : null,
         shippingCost,
-        // Tambahkan detail tujuan untuk disimpan di order
         shippingDestination:
           shippingMethod === "DELIVERY"
             ? {
@@ -256,7 +278,6 @@ const CheckoutPage = () => {
         if (order.xenditPaymentUrl) {
           window.location.href = order.xenditPaymentUrl;
         } else {
-          // Handle case for pickup or other non-payment scenarios if any
           router.push(`/orders/${order.id}/success`);
         }
       } else {
@@ -276,9 +297,11 @@ const CheckoutPage = () => {
 
   if (loading) {
     return (
-      <div className="bg-black text-white min-h-screen flex items-center justify-center">
-        Memuat...
-      </div>
+        <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
+            <Navbar />
+            <CheckoutPageSkeleton />
+            <Footer />
+        </div>
     );
   }
 
@@ -287,7 +310,6 @@ const CheckoutPage = () => {
     shippingMethod === "PICKUP" ? 0 : selectedShipping?.price || 0;
   const total = subtotal + shippingCost;
 
-  // Helper function to format courier names
   const formatCourierName = (company, type) => {
     const courierNames = {
       jne: "JNE",
@@ -332,15 +354,13 @@ const CheckoutPage = () => {
           <h1 className="text-h1 font-bold mb-8">Checkout</h1>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Form */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Shipping Method Selection */}
               <div className="bg-gray-900 p-6 rounded-lg">
                 <h2 className="text-h3 font-semibold mb-4">
                   Metode Pengiriman
                 </h2>
                 <div className="space-y-4">
-                  <label className="flex items-center space-x-3">
+                  <label className="flex items-center space-x-3 cursor-pointer">
                     <input
                       type="radio"
                       name="shippingMethod"
@@ -351,7 +371,7 @@ const CheckoutPage = () => {
                     />
                     <span>Ambil di Sekretariat (Gratis Ongkir)</span>
                   </label>
-                  <label className="flex items-center space-x-3">
+                  <label className="flex items-center space-x-3 cursor-pointer">
                     <input
                       type="radio"
                       name="shippingMethod"
@@ -365,14 +385,13 @@ const CheckoutPage = () => {
                 </div>
               </div>
 
-              {/* Address Selection (only show if DELIVERY) */}
               {shippingMethod === "DELIVERY" && (
                 <div className="bg-gray-900 p-6 rounded-lg">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-h3 font-semibold">Alamat Pengiriman</h2>
                     <button
                       onClick={() => setShowAddressForm(true)}
-                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm"
+                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm cursor-pointer"
                     >
                       Tambah Alamat
                     </button>
@@ -385,7 +404,7 @@ const CheckoutPage = () => {
                       {addresses.map((address) => (
                         <label
                           key={address.id}
-                          className="flex items-start space-x-3"
+                          className="flex items-start space-x-3 cursor-pointer"
                         >
                           <input
                             type="radio"
@@ -429,7 +448,6 @@ const CheckoutPage = () => {
                 </div>
               )}
 
-              {/* Postal Code Info (only show if DELIVERY and address selected) */}
               {shippingMethod === "DELIVERY" && selectedAddress && (
                 <div className="bg-gray-900 p-6 rounded-lg hidden">
                   <h2 className="text-h3 font-semibold mb-4">
@@ -448,7 +466,6 @@ const CheckoutPage = () => {
                 </div>
               )}
 
-              {/* Shipping Options (only show if DELIVERY and address selected) */}
               {shippingMethod === "DELIVERY" &&
                 selectedAddress &&
                 destinationPostalCode &&
@@ -461,7 +478,7 @@ const CheckoutPage = () => {
                       {shippingOptions.map((option, index) => (
                         <label
                           key={index}
-                          className="flex items-center justify-between p-4 border border-gray-700 rounded-lg"
+                          className="flex items-center justify-between p-4 border border-gray-700 rounded-lg cursor-pointer"
                         >
                           <div className="flex items-center space-x-3">
                             <input
@@ -498,7 +515,6 @@ const CheckoutPage = () => {
                   </div>
                 )}
 
-              {/* Add Address Form Modal */}
               {showAddressForm && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                   <div className="bg-gray-900 p-6 rounded-lg max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
@@ -632,7 +648,7 @@ const CheckoutPage = () => {
                           className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 w-full mt-4"
                         />
 
-                        <label className="flex items-center space-x-2 mt-4">
+                        <label className="flex items-center space-x-2 mt-4 cursor-pointer">
                           <input
                             type="checkbox"
                             name="isDefault"
@@ -647,14 +663,14 @@ const CheckoutPage = () => {
                       <div className="flex space-x-4 pt-4">
                         <button
                           type="submit"
-                          className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg"
+                          className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg cursor-pointer"
                         >
                           Simpan Alamat
                         </button>
                         <button
                           type="button"
                           onClick={() => setShowAddressForm(false)}
-                          className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg"
+                          className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg cursor-pointer"
                         >
                           Batal
                         </button>
@@ -665,7 +681,6 @@ const CheckoutPage = () => {
               )}
             </div>
 
-            {/* Right Column - Order Summary */}
             <div className="bg-gray-900 p-6 rounded-lg h-fit">
               <h2 className="text-h3 font-semibold mb-4">Ringkasan Pesanan</h2>
 
@@ -725,7 +740,7 @@ const CheckoutPage = () => {
                     (shippingMethod === "DELIVERY" &&
                       (!selectedAddress || !selectedShipping))
                   }
-                  className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg mt-6"
+                  className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg mt-6 cursor-pointer"
                 >
                   {isProcessing ? "Memproses..." : "Lanjut ke Pembayaran"}
                 </button>

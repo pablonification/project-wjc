@@ -202,7 +202,7 @@ const DetailMerchandise = () => {
                   <div className="flex items-center gap-4">
                     <button
                       onClick={() => handleQuantityChange(quantity - 1)}
-                      className="w-10 h-10 bg-gray-700 hover:bg-gray-600 text-white rounded-lg flex items-center justify-center"
+                      className="w-10 h-10 bg-gray-700 hover:bg-gray-600 text-white rounded-lg flex items-center justify-center cursor-pointer"
                       disabled={quantity <= 1}
                     >
                       -
@@ -212,7 +212,7 @@ const DetailMerchandise = () => {
                     </span>
                     <button
                       onClick={() => handleQuantityChange(quantity + 1)}
-                      className="w-10 h-10 bg-gray-700 hover:bg-gray-600 text-white rounded-lg flex items-center justify-center"
+                      className="w-10 h-10 bg-gray-700 hover:bg-gray-600 text-white rounded-lg flex items-center justify-center cursor-pointer"
                     >
                       +
                     </button>
@@ -231,7 +231,7 @@ const DetailMerchandise = () => {
 
                 <button
                   onClick={handleBuyNow}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 text-lg transition-colors duration-300"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 text-lg transition-colors duration-300 cursor-pointer"
                 >
                   Beli Sekarang
                 </button>

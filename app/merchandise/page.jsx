@@ -99,7 +99,7 @@ export default function Merchandise() {
           )}
           {products.length > visibleCount && (
             <div className="text-center mt-12 flex justify-center">
-              <button onClick={handleShowMore} className="py-2 px-48 bg-[#403E3D] flex items-center gap-2 cursor-pointer font-manrope">
+              <button onClick={handleShowMore} className="py-2 px-8 sm:px-24 md:px-36 lg:px-48 bg-[#403E3D] flex items-center gap-2 cursor-pointer font-manrope w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl justify-center">
                 <p className="text-white font-manrope text-lg">Show More</p>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

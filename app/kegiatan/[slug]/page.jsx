@@ -278,7 +278,7 @@ export default function KegiatanDetail() {
           <div className="mt-8">
             <button
               onClick={handleRegistration}
-              className="inline-flex items-center justify-center w-full md:w-fit bg-red-600 hover:bg-red-700 text-white py-3 px-4 transition-colors group"
+              className="inline-flex items-center justify-center w-full md:w-fit bg-red-600 hover:bg-red-700 text-white py-3 px-4 transition-colors group cursor-pointer"
             >
               Daftar Sekarang
             </button>
@@ -463,7 +463,7 @@ export default function KegiatanDetail() {
                     <button
                       type="submit"
                       disabled={isProcessing}
-                      className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                      className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors cursor-pointer"
                     >
                       {isProcessing ? "Memproses..." : "Lanjut ke Pembayaran"}
                     </button>

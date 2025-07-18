@@ -1,10 +1,41 @@
-// pablonification/project-wjc/project-wjc-testXendit/app/profile/my-activities/page.jsx
-
 "use client";
 import { useState, useEffect } from 'react';
 import { Navbar, Footer } from '@/app/components';
 import Link from 'next/link';
 import Image from "next/image";
+
+const ActivityCardSkeleton = () => (
+    <div className="bg-gray-900 p-6 rounded-lg animate-pulse">
+        <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+            <div className="flex-1">
+                <div className="flex items-center mb-2">
+                    <div className="h-5 w-32 bg-gray-700 rounded mr-4" />
+                    <div className="h-6 w-24 bg-gray-700 rounded-full" />
+                </div>
+                <div className="h-4 w-1/4 bg-gray-700 rounded mb-4" />
+                <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-md bg-gray-700" />
+                    <div>
+                        <div className="h-5 w-40 bg-gray-700 rounded mb-2" />
+                        <div className="h-4 w-24 bg-gray-700 rounded" />
+                    </div>
+                </div>
+            </div>
+            <div className="text-left md:text-right mt-4 md:mt-0">
+                <div className="h-4 w-24 bg-gray-700 rounded mb-2" />
+                <div className="h-7 w-32 bg-gray-700 rounded" />
+            </div>
+        </div>
+    </div>
+);
+
+const MyActivitiesPageSkeleton = () => (
+    <div className="space-y-6">
+        {[...Array(3)].map((_, i) => (
+            <ActivityCardSkeleton key={i} />
+        ))}
+    </div>
+);
 
 const MyActivitiesPage = () => {
   const [registrations, setRegistrations] = useState([]);
@@ -47,6 +78,21 @@ const MyActivitiesPage = () => {
         return <span className="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-200 rounded-full">{status}</span>;
     }
   };
+  
+  if (loading) {
+    return (
+        <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
+            <Navbar />
+            <main className="flex-grow bg-black text-white">
+                <div className="container mx-auto mt-20 px-4 sm:px-6 lg:px-28 py-16">
+                    <div className="h-12 w-1/3 bg-gray-700 rounded mb-8 animate-pulse" />
+                    <MyActivitiesPageSkeleton />
+                </div>
+            </main>
+            <Footer />
+        </div>
+    );
+  }
 
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
@@ -55,7 +101,6 @@ const MyActivitiesPage = () => {
         <div className="container mx-auto mt-20 px-4 sm:px-6 lg:px-28 py-16">
           <h1 className="text-h1 font-bold mb-8">Kegiatan Saya</h1>
           
-          {loading && <p>Memuat pendaftaran...</p>}
           {error && <p className="text-red-500">{error}</p>}
 
           {!loading && !error && (
@@ -72,7 +117,6 @@ const MyActivitiesPage = () => {
                         Tanggal Daftar: {new Date(reg.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                       </p>
                       <div className="flex items-center gap-4">
-                        {/* Debug log for imageUrl */}
                         {console.log("imageUrl:", reg.activity.imageUrl, "title:", reg.activity.title)}
                         <Image
                           src={reg.activity.imageUrl || "/assets/image/Placeholder.png"}
@@ -82,7 +126,6 @@ const MyActivitiesPage = () => {
                           className="w-16 h-16 rounded-md object-cover"
                           onError={(e) => { e.target.src = "/assets/image/Placeholder.png"; }}
                         />
-                        {/* --- AKHIR PERBAIKAN --- */}
                         <div>
                           <p className="font-semibold">{reg.activity.title}</p>
                           <p className="text-sm text-gray-400">{reg.activity.location}</p>
