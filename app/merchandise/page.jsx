@@ -4,8 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
-const ProductCard = ({ name, price, imageUrl, imageUrls, slug }) => {
-  const displayUrl = imageUrl || (Array.isArray(imageUrls) ? imageUrls[0] : null);
+const ProductCard = ({ name, price, imageUrls, slug }) => {
+  const displayUrl = imageUrls && imageUrls.length > 0 ? imageUrls[0] : null;
   return (
     <Link href={`/merchandise/${slug}`} className="flex flex-col font-manrope group">
       <div className="w-full h-72 bg-[#D9D9D9] relative overflow-hidden">
@@ -28,13 +28,33 @@ const ProductCard = ({ name, price, imageUrl, imageUrls, slug }) => {
   );
 };
 
+const ProductCardSkeleton = () => (
+  <div className="flex flex-col font-manrope animate-pulse">
+    <div className="w-full h-72 bg-gray-700 rounded" />
+    <div className="mt-4">
+      <div className="h-6 w-3/4 bg-gray-700 rounded mb-2" />
+      <div className="h-5 w-1/2 bg-gray-700 rounded" />
+    </div>
+  </div>
+);
+
+const MerchandiseListSkeleton = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
+        {[...Array(4)].map((_, i) => (
+            <ProductCardSkeleton key={i} />
+        ))}
+    </div>
+);
+
+
 export default function Merchandise() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [visibleCount, setVisibleCount] = useState(8); // Initially show 8 products
+  const [visibleCount, setVisibleCount] = useState(8);
 
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoading(true);
       try {
         const res = await fetch('/api/merchandise');
         if (!res.ok) throw new Error("Gagal mengambil data produk");
@@ -67,7 +87,7 @@ export default function Merchandise() {
       <section className="bg-black flex-grow text-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-28 py-24">
           {loading ? (
-            <div className="text-center">Memuat produk...</div>
+            <MerchandiseListSkeleton />
           ) : products.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
               {products.slice(0, visibleCount).map((product) => (

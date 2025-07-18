@@ -6,10 +6,10 @@ import Link from "next/link";
 
 // Skeleton loader for the activities list
 function KegiatanListSkeleton() {
-  // Show 3 skeleton cards as placeholders
+  // Show 4 skeleton cards as placeholders
   return (
     <>
-      {[1, 2, 3].map((i) => (
+      {[...Array(4)].map((i) => (
         <div key={i} className="flex animate-pulse font-manrope">
           <div className="w-1/3 h-48 bg-gray-700 rounded mr-8" />
           <div className="flex-1 py-8">
@@ -58,6 +58,7 @@ const KegiatanCard = ({
   imageUrl,
 }) => {
   const statusStyles = {
+    "Mendatang": "bg-blue-200 text-blue-800",
     "Sedang Berlangsung": "bg-[#F5CB58] text-black",
     Selesai: "bg-[#97D077] text-black",
   };
@@ -73,13 +74,11 @@ const KegiatanCard = ({
         <div>
           {status && (
             <div className="mb-4">
-              {status !== "Mendatang" && (
-                <span
-                  className={`inline-block px-3 py-1 text-sm font-semibold font-manrope ${statusStyles[status]}`}
-                >
-                  {status}
-                </span>
-              )}
+              <span
+                className={`inline-block px-3 py-1 text-sm font-semibold font-manrope ${statusStyles[status]}`}
+              >
+                {status}
+              </span>
             </div>
           )}
           <h3 className="text-h1 font-bold text-white mb-4 font-manrope">{title}</h3>
@@ -127,10 +126,12 @@ export default function Kegiatan() {
   const [activeTab, setActiveTab] = useState("Semua");
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(4); // Show 4 activities initially
 
   useEffect(() => {
     const fetchActivities = async () => {
       try {
+        setLoading(true);
         const res = await fetch("/api/kegiatan");
         if (!res.ok) throw new Error("Gagal mengambil data kegiatan");
         const data = await res.json();
@@ -143,6 +144,10 @@ export default function Kegiatan() {
     };
     fetchActivities();
   }, []);
+
+  const handleShowMore = () => {
+    setVisibleCount(prevCount => prevCount + 4);
+  };
 
   const tabs = ["Semua", "Sedang Berlangsung", "Mendatang", "Selesai"];
 
@@ -195,8 +200,8 @@ export default function Kegiatan() {
           <div className="grid grid-cols-1 gap-12 font-manrope">
             {loading ? (
               <KegiatanListSkeleton />
-            ) : filteredActivities.length ? (
-              filteredActivities.map((activity, index) => (
+            ) : filteredActivities.length > 0 ? (
+              filteredActivities.slice(0, visibleCount).map((activity, index) => (
                 <KegiatanCard
                   key={index}
                   title={activity.title}
@@ -226,9 +231,9 @@ export default function Kegiatan() {
             )}
           </div>
 
-          <div className="text-center mt-12 flex justify-center font-manrope">
-            <Link href="/kegiatan">
-              <button className="py-2 px-48 bg-[#403E3D] flex items-center gap-2 cursor-pointer font-manrope">
+          {filteredActivities.length > visibleCount && (
+            <div className="text-center mt-12 flex justify-center font-manrope">
+              <button onClick={handleShowMore} className="py-2 px-48 bg-[#403E3D] flex items-center gap-2 cursor-pointer font-manrope">
                 <p className="text-white font-manrope text-lg">Show More</p>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -245,8 +250,8 @@ export default function Kegiatan() {
                   />
                 </svg>
               </button>
-            </Link>
-          </div>
+            </div>
+          )}
         </div>
       </section>
       <Footer />

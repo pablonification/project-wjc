@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 export async function GET() {
   try {
     const orders = await prisma.order.findMany({
+      // Mengambil semua pesanan, tidak hanya yang lunas
       include: {
         merchandise: true,
         user: {
@@ -22,4 +23,4 @@ export async function GET() {
       { status: 500 }
     );
   }
-} 
+}
