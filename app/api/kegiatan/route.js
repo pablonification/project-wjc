@@ -100,3 +100,20 @@ export async function POST(request, { params }) {
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
+
+export async function GET() {
+  try {
+    const kegiatan = await prisma.kegiatan.findMany({
+      orderBy: {
+        dateStart: "desc", // Mengurutkan dari yang terbaru
+      },
+    });
+    return NextResponse.json(kegiatan, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching kegiatan:", error);
+    return NextResponse.json(
+      { message: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

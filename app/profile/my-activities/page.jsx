@@ -1,7 +1,10 @@
+// pablonification/project-wjc/project-wjc-testXendit/app/profile/my-activities/page.jsx
+
 "use client";
 import { useState, useEffect } from 'react';
 import { Navbar, Footer } from '@/app/components';
 import Link from 'next/link';
+import Image from "next/image";
 
 const MyActivitiesPage = () => {
   const [registrations, setRegistrations] = useState([]);
@@ -12,13 +15,11 @@ const MyActivitiesPage = () => {
   useEffect(() => {
     const fetchUserAndRegistrations = async () => {
       try {
-        // 1. Get user profile to get the ID
         const resUser = await fetch('/api/user/profile');
         if (!resUser.ok) throw new Error('Silakan login untuk melihat pendaftaran.');
         const dataUser = await resUser.json();
         setUser(dataUser.user);
 
-        // 2. Fetch all registrations and filter by user ID on the client
         const resRegistrations = await fetch(`/api/admin/activity-registrations`);
         if (!resRegistrations.ok) throw new Error('Gagal memuat data pendaftaran.');
         const allRegistrations = await resRegistrations.json();
@@ -71,7 +72,17 @@ const MyActivitiesPage = () => {
                         Tanggal Daftar: {new Date(reg.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                       </p>
                       <div className="flex items-center gap-4">
-                        <img src={reg.activity.imageUrl} alt={reg.activity.title} className="w-16 h-16 rounded-md object-cover" />
+                        {/* Debug log for imageUrl */}
+                        {console.log("imageUrl:", reg.activity.imageUrl, "title:", reg.activity.title)}
+                        <Image
+                          src={reg.activity.imageUrl || "/assets/image/Placeholder.png"}
+                          alt={reg.activity.title}
+                          width={64}
+                          height={64}
+                          className="w-16 h-16 rounded-md object-cover"
+                          onError={(e) => { e.target.src = "/assets/image/Placeholder.png"; }}
+                        />
+                        {/* --- AKHIR PERBAIKAN --- */}
                         <div>
                           <p className="font-semibold">{reg.activity.title}</p>
                           <p className="text-sm text-gray-400">{reg.activity.location}</p>
