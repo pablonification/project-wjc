@@ -8,7 +8,6 @@ const MerchandiseDashboard = () => {
   const [form, setForm] = useState({
     name: "",
     price: "",
-    category: "",
     description: "",
     imageUrls: [],
     files: [],
@@ -93,6 +92,7 @@ const MerchandiseDashboard = () => {
         ...form,
         imageUrls: uploadedUrls,
       };
+      delete payload.category;
 
       const res = await fetch("/api/merchandise", {
         method: "POST",
@@ -107,7 +107,6 @@ const MerchandiseDashboard = () => {
       setForm({
         name: "",
         price: "",
-        category: "",
         description: "",
         imageUrls: [],
         files: [],
@@ -179,14 +178,6 @@ const MerchandiseDashboard = () => {
             required
           />
           <input
-            name="category"
-            value={form.category}
-            onChange={handleChange}
-            placeholder="Kategori"
-            className="w-full border px-3 py-2 rounded"
-            required
-          />
-          <input
             type="file"
             multiple
             onChange={handleFileChange}
@@ -230,7 +221,6 @@ const MerchandiseDashboard = () => {
                     )}
                     <div>
                       <h3 className="font-semibold text-lg">{item.name}</h3>
-                      <p className="text-sm text-gray-600">{item.category}</p>
                       <p className="font-bold text-gray-800">
                         Rp{new Intl.NumberFormat("id-ID").format(item.price)}
                       </p>
@@ -254,7 +244,7 @@ const MerchandiseDashboard = () => {
               ))}
             </div>
           ) : (
-            <p>Tidak ada merchandise.</p>
+            <p>Tidak ada produk.</p>
           )}
         </div>
       </div>

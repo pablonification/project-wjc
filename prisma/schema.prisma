@@ -164,7 +164,6 @@ model Merchandise {
   name        String
   slug        String   @unique
   price       Int
-  category    String
   description String?
   imageUrls   String[]
   createdAt   DateTime @default(now())

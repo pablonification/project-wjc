@@ -53,16 +53,6 @@ export default function Merchandise() {
     setVisibleCount(prevCount => prevCount + 8);
   };
 
-  // Logic to group products by category
-  const productsByCategory = products.reduce((acc, product) => {
-    const category = product.category || "Uncategorized";
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push(product);
-    return acc;
-  }, {});
-
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
       <Navbar />
@@ -78,42 +68,35 @@ export default function Merchandise() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-28 py-24">
           {loading ? (
             <div className="text-center">Memuat produk...</div>
-          ) : Object.keys(productsByCategory).length > 0 ? (
-            <div className="space-y-16">
-              {Object.entries(productsByCategory).map(([category, items]) => (
-                <div key={category}>
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-h2 font-bold">{category}</h2>
-                    {/* Filter Dropdown Placeholder */}
-                    <div className="relative">
-                      <select className="bg-transparent border border-gray-600 rounded-md py-2 px-4 appearance-none focus:outline-none focus:ring-2 focus:ring-white">
-                        <option>Filter Berdasarkan</option>
-                        <option>Terbaru</option>
-                        <option>Harga Terendah</option>
-                        <option>Harga Tertinggi</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
-                    {items.slice(0, visibleCount).map((product) => (
-                      <ProductCard key={product.id} {...product} />
-                    ))}
-                  </div>
-                </div>
+          ) : products.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
+              {products.slice(0, visibleCount).map((product) => (
+                <ProductCard key={product.id} {...product} />
               ))}
-              {products.length > visibleCount && (
-                <div className="text-center mt-20 flex justify-center">
-                   <button onClick={handleShowMore} className="py-2 px-48 bg-[#403E3D] flex items-center gap-2 cursor-pointer font-manrope">
-                     <p className="text-white font-manrope text-lg">Show More</p>
-                     <svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} fill="none" viewBox="0 0 20 20">
-                       <path d="M10 5v10M5 10h10" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
-                     </svg>
-                   </button>
-                </div>
-              )}
             </div>
           ) : (
-            <div className="text-center">Belum ada produk untuk ditampilkan.</div>
+            <div className="text-center">Tidak ada produk.</div>
+          )}
+          {products.length > visibleCount && (
+            <div className="text-center mt-12 flex justify-center">
+              <button onClick={handleShowMore} className="py-2 px-48 bg-[#403E3D] flex items-center gap-2 cursor-pointer font-manrope">
+                <p className="text-white font-manrope text-lg">Show More</p>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width={20}
+                  height={20}
+                  fill="none"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    d="M10 5v10M5 10h10"
+                    stroke="#fff"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            </div>
           )}
         </div>
       </section>
