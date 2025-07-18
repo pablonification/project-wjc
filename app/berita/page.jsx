@@ -4,6 +4,23 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
+// Skeleton loader for the news list
+function BeritaListSkeleton() {
+  // Show 6 skeleton cards as placeholders
+  return (
+    <>
+      {[...Array(6)].map((_, i) => (
+        <div key={i} className="flex flex-col animate-pulse font-manrope">
+          <div className="w-full h-56 bg-gray-700 rounded mb-4" />
+          <div className="h-4 w-1/3 bg-gray-700 rounded mb-2" />
+          <div className="h-6 w-2/3 bg-gray-700 rounded mb-2" />
+          <div className="h-4 w-full bg-gray-700 rounded" />
+        </div>
+      ))}
+    </>
+  );
+}
+
 const NewsCard = ({ category, date, title, description, slug, imageUrl }) => {
   return (
     <Link href={`/berita/${slug}`} className="flex flex-col font-manrope">
@@ -64,7 +81,7 @@ export default function Berita() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-28 mt-3 py-24">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16 font-manrope">
             {loading ? (
-              <p className="text-white">Memuat...</p>
+              <BeritaListSkeleton />
             ) : news.length ? (
               news.map((item, index) => (
                 <NewsCard

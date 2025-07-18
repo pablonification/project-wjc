@@ -4,6 +4,29 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+// Skeleton loader for the activities list
+function KegiatanListSkeleton() {
+  // Show 3 skeleton cards as placeholders
+  return (
+    <>
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="flex animate-pulse font-manrope">
+          <div className="w-1/3 h-48 bg-gray-700 rounded mr-8" />
+          <div className="flex-1 py-8">
+            <div className="h-8 w-1/2 bg-gray-700 rounded mb-4" />
+            <div className="h-4 w-2/3 bg-gray-700 rounded mb-2" />
+            <div className="h-4 w-1/3 bg-gray-700 rounded mb-6" />
+            <div className="flex space-x-4 mt-8">
+              <div className="h-4 w-24 bg-gray-700 rounded" />
+              <div className="h-4 w-24 bg-gray-700 rounded" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
 const CalendarIcon = (props) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -171,7 +194,7 @@ export default function Kegiatan() {
 
           <div className="grid grid-cols-1 gap-12 font-manrope">
             {loading ? (
-              <p className="text-white font-manrope">Memuat...</p>
+              <KegiatanListSkeleton />
             ) : filteredActivities.length ? (
               filteredActivities.map((activity, index) => (
                 <KegiatanCard

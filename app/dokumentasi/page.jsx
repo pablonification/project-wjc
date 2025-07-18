@@ -2,7 +2,7 @@
 import { Navbar, Footer } from "../components";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 
 const DocLink = ({ href, children }) => (
   <a
@@ -24,18 +24,53 @@ const DocLink = ({ href, children }) => (
   </a>
 );
 
+const DocLinkSkeleton = () => (
+    <div className="flex items-center justify-between py-4">
+        <div className="h-8 bg-gray-700 rounded w-3/4 animate-pulse"></div>
+        <div className="w-7 h-7 bg-gray-700 rounded-full animate-pulse"></div>
+    </div>
+)
+
+const DokumentasiSkeleton = () => (
+    <div>
+        <div>
+            <div className="h-12 bg-gray-700 rounded w-1/4 mb-6 animate-pulse"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-24">
+                <DocLinkSkeleton />
+                <DocLinkSkeleton />
+                <DocLinkSkeleton />
+                <DocLinkSkeleton />
+                <DocLinkSkeleton />
+                <DocLinkSkeleton />
+            </div>
+        </div>
+    </div>
+);
+
+
 export default function Dokumentasi() {
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDocs = async () => {
-      const res = await fetch("/api/dokumentasi");
-      const data = await res.json();
-      setDocs(data);
-      setLoading(false);
+      try {
+        const res = await fetch("/api/dokumentasi");
+        if (!res.ok) {
+          throw new Error('Gagal mengambil data');
+        }
+        const data = await res.json();
+        setDocs(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
     };
-    fetchDocs();
+    // Simulate loading
+    setTimeout(() => {
+        fetchDocs();
+    }, 1500);
   }, []);
 
   // Group by year
@@ -63,7 +98,7 @@ export default function Dokumentasi() {
       <section className="bg-black flex-grow">
         <div className="container mx-auto px-4 sm:px-6 lg:px-28 py-24">
           {loading ? (
-            <p className="text-white">Memuat...</p>
+            <DokumentasiSkeleton />
           ) : years.length ? (
             years.map((year, idx) => (
               <div key={year} className={idx > 0 ? "mt-16" : ""}>
