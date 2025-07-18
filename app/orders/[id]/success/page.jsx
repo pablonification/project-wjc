@@ -10,6 +10,7 @@ const PaymentSuccessPage = () => {
   const { id } = params;
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [waMerch, setWaMerch] = useState("6281234567890");
 
   useEffect(() => {
     if (id) {
@@ -29,6 +30,37 @@ const PaymentSuccessPage = () => {
       fetchOrder();
     }
   }, [id]);
+
+  useEffect(() => {
+    const fetchWa = async () => {
+      const res = await fetch("/api/admin/settings/wa-merch");
+      const data = await res.json();
+      if (data.number) setWaMerch(data.number);
+    };
+    fetchWa();
+  }, []);
+
+  // WhatsApp auto-redirect effect
+  useEffect(() => {
+    if (order && waMerch) {
+      const waMessage = encodeURIComponent(
+        `Halo, saya sudah berhasil order merchandise.\n\n` +
+        `Order ID: ${order.id}\n` +
+        `Nama Produk: ${order.merchandise.name}\n` +
+        `Jumlah: ${order.quantity}\n` +
+        `Subtotal: Rp${order.subtotal.toLocaleString('id-ID')}\n` +
+        `Ongkos Kirim: Rp${order.shippingCost.toLocaleString('id-ID')}\n` +
+        `Total: Rp${order.total.toLocaleString('id-ID')}\n` +
+        `Metode Pengiriman: ${order.shippingMethod === 'PICKUP' ? 'Ambil di Sekretariat' : 'Dikirim via Ekspedisi'}${order.shippingMethod === 'DELIVERY' && order.courierService ? ` (${order.courierService})` : ''}\n` +
+        `Status: ${order.status === 'PAID' ? 'Dibayar' : order.status}`
+      );
+      const waLink = `https://wa.me/${waMerch}?text=${waMessage}`;
+      const timeout = setTimeout(() => {
+        window.location.href = waLink;
+      }, 2000);
+      return () => clearTimeout(timeout);
+    }
+  }, [order, waMerch]);
 
   if (loading) {
     return (
@@ -109,19 +141,43 @@ const PaymentSuccessPage = () => {
             )}
 
             <div className="space-y-4">
-              <p className="text-gray-300 text-b1">
-                {order?.shippingMethod === 'PICKUP' 
-                  ? 'Silakan ambil pesanan Anda di sekretariat pada jam kerja.'
-                  : 'Pesanan Anda akan segera diproses dan dikirim ke alamat yang telah ditentukan.'
-                }
-              </p>
+              <div className="bg-gray-900/60 rounded-lg p-4">
+                <p className="text-gray-300 text-b1 whitespace-pre-line leading-relaxed text-center sm:text-left break-words">
+                  {order?.shippingMethod === 'PICKUP' 
+                    ? 'Silakan ambil pesanan Anda di sekretariat pada jam kerja.'
+                    : (
+                        <>
+                          Anda akan diarahkan untuk mengirim pesan melalui WhatsApp untuk pemrosesan lebih lanjut. Jika halaman tidak otomatis berpindah, silakan klik tombol merah di bawah ini.<br className="hidden sm:block" />
+                        </>
+                      )
+                  }
+                </p>
+              </div>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/merchandise" className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg">
-                  Lanjut Belanja
-                </Link>
-                <Link href="/profile" className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg">
-                  Lihat Pesanan Saya
+                {/* WhatsApp redirect button */}
+                {order && (
+                  <a
+                    href={`https://wa.me/${waMerch}?text=${encodeURIComponent(
+                      `Halo, saya sudah berhasil order merchandise.\n\n` +
+                      `Order ID: ${order.id}\n` +
+                      `Nama Produk: ${order.merchandise.name}\n` +
+                      `Jumlah: ${order.quantity}\n` +
+                      `Subtotal: Rp${order.subtotal.toLocaleString('id-ID')}\n` +
+                      `Ongkos Kirim: Rp${order.shippingCost.toLocaleString('id-ID')}\n` +
+                      `Total: Rp${order.total.toLocaleString('id-ID')}\n` +
+                      `Metode Pengiriman: ${order.shippingMethod === 'PICKUP' ? 'Ambil di Sekretariat' : 'Dikirim via Ekspedisi'}${order.shippingMethod === 'DELIVERY' && order.courierService ? ` (${order.courierService})` : ''}\n` +
+                      `Status: ${order.status === 'PAID' ? 'Dibayar' : order.status}`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg"
+                  >
+                    Konfirmasi Pesanan
+                  </a>
+                )}
+                <Link href="/" className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg">
+                  Ke Halaman Utama
                 </Link>
               </div>
             </div>

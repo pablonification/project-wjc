@@ -10,6 +10,7 @@ const ActivityPaymentSuccessPage = () => {
   const [activity, setActivity] = useState(null);
   const [registration, setRegistration] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [waKegiatan, setWaKegiatan] = useState("6281234567890");
 
   // Fetch current user profile
   const fetchUser = async () => {
@@ -67,6 +68,37 @@ const ActivityPaymentSuccessPage = () => {
     loadData();
   }, [slug]);
 
+  useEffect(() => {
+    const fetchWa = async () => {
+      const res = await fetch("/api/admin/settings/wa-kegiatan");
+      const data = await res.json();
+      if (data.number) setWaKegiatan(data.number);
+    };
+    fetchWa();
+  }, []);
+
+  // WhatsApp redirect effect
+  useEffect(() => {
+    if (activity && registration) {
+      const waMessage = encodeURIComponent(
+        `Halo, saya sudah berhasil daftar kegiatan.\n\n` +
+        `Nama: ${registration.user?.name || "-"}\n` +
+        `Nama Kegiatan: ${activity.title}\n` +
+        `Tanggal: ${new Date(activity.dateStart).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}` +
+        (activity.dateEnd ? ` - ${new Date(activity.dateEnd).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}` : "") + `\n` +
+        `Lokasi: ${activity.location}\n` +
+        `Ukuran Kaos: ${registration.tshirtSize}\n` +
+        (registration.needAccommodation ? `Penginapan: Ya (${registration.roomType})\n` : "") +
+        `Total Pembayaran: Rp${registration.totalPrice.toLocaleString("id-ID")}\n`
+      );
+      const waLink = `https://wa.me/${waKegiatan}?text=${waMessage}`;
+      const timeout = setTimeout(() => {
+        window.location.href = waLink;
+      }, 2000);
+      return () => clearTimeout(timeout);
+    }
+  }, [activity, registration, waKegiatan]);
+
   if (loading) {
     return (
       <div className="bg-black text-white min-h-screen flex items-center justify-center">
@@ -99,7 +131,8 @@ const ActivityPaymentSuccessPage = () => {
               </div>
               <h1 className="text-h1 font-bold mb-4">Pembayaran Berhasil!</h1>
               <p className="text-gray-300 text-b1">
-                Terima kasih telah mendaftar. Pendaftaran Anda untuk kegiatan ini sudah berhasil diproses.
+                Terima kasih telah mendaftar. Pendaftaran Anda untuk kegiatan
+                ini sudah berhasil diproses.
               </p>
             </div>
 
@@ -126,11 +159,14 @@ const ActivityPaymentSuccessPage = () => {
                       {activity.location}
                     </div>
                     <div className="text-xs text-gray-400">
-                      {new Date(activity.dateStart).toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
+                      {new Date(activity.dateStart).toLocaleDateString(
+                        "id-ID",
+                        {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        }
+                      )}
                     </div>
                   </div>
                 </div>
@@ -175,22 +211,42 @@ const ActivityPaymentSuccessPage = () => {
             )}
 
             <div className="space-y-4">
-              <p className="text-gray-300 text-b1">
-                Silakan cek email atau halaman profil Anda untuk konfirmasi lebih lanjut.
-              </p>
+              <div className="bg-gray-900/60 rounded-lg p-4">
+                <p className="text-gray-300 text-b1 whitespace-pre-line leading-relaxed text-center sm:text-left break-words">
+                  Anda akan diarahkan untuk mengirim pesan melalui WhatsApp
+                  untuk pemrosesan lebih lanjut. Jika halaman tidak otomatis
+                  berpindah, silakan klik tombol merah di bawah ini.
+                  <br className="hidden sm:block" />
+                </p>
+              </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                {/* WhatsApp redirect button */}
+                {activity && registration && (
+                  <a
+                    href={`https://wa.me/${waKegiatan}?text=${encodeURIComponent(
+                      `Halo, saya sudah berhasil daftar kegiatan.\n\n` +
+                      `Nama: ${registration.user?.name || "-"}\n` +
+                      `Nama Kegiatan: ${activity.title}\n` +
+                      `Tanggal: ${new Date(activity.dateStart).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}` +
+                      (activity.dateEnd ? ` - ${new Date(activity.dateEnd).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}` : "") + `\n` +
+                      `Lokasi: ${activity.location}\n` +
+                      `Ukuran Kaos: ${registration.tshirtSize}\n` +
+                      (registration.needAccommodation ? `Penginapan: Ya (${registration.roomType})\n` : "") +
+                      `Total Pembayaran: Rp${registration.totalPrice.toLocaleString("id-ID")}\n`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg"
+                  >
+                    Konfirmasi Pendaftaran
+                  </a>
+                )}
                 <Link
-                  href="/kegiatan"
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg"
-                >
-                  Lihat Kegiatan Lainnya
-                </Link>
-                <Link
-                  href="/profile"
+                  href="/"
                   className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg"
                 >
-                  Lihat Pendaftaran Saya
+                  Ke Halaman Utama
                 </Link>
               </div>
             </div>
@@ -202,4 +258,4 @@ const ActivityPaymentSuccessPage = () => {
   );
 };
 
-export default ActivityPaymentSuccessPage; 
+export default ActivityPaymentSuccessPage;

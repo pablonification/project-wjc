@@ -15,6 +15,9 @@ const MerchandiseDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [waMerch, setWaMerch] = useState("");
+  const [waLoading, setWaLoading] = useState(false);
+  const [waMsg, setWaMsg] = useState("");
 
   const fetchItems = async () => {
     try {
@@ -28,6 +31,33 @@ const MerchandiseDashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Fetch WhatsApp number for merchandise
+  useEffect(() => {
+    const fetchWa = async () => {
+      setWaLoading(true);
+      const res = await fetch("/api/admin/settings/wa-merch");
+      const data = await res.json();
+      setWaMerch(data.number || "");
+      setWaLoading(false);
+    };
+    fetchWa();
+  }, []);
+
+  const handleWaSubmit = async (e) => {
+    e.preventDefault();
+    setWaLoading(true);
+    setWaMsg("");
+    const res = await fetch("/api/admin/settings/wa-merch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ number: waMerch }),
+    });
+    const data = await res.json();
+    setWaLoading(false);
+    if (data.number) setWaMsg("Nomor WhatsApp berhasil disimpan!");
+    else setWaMsg(data.error || "Gagal menyimpan nomor WhatsApp");
   };
 
   useEffect(() => {
@@ -108,6 +138,26 @@ const MerchandiseDashboard = () => {
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-md">
         <h1 className="text-2xl font-bold mb-6">Kelola Merchandise</h1>
+
+        {/* WhatsApp Number Form */}
+        <form onSubmit={handleWaSubmit} className="mb-8 flex items-end gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nomor WhatsApp Konfirmasi Merchandise</label>
+            <input
+              type="text"
+              value={waMerch}
+              onChange={e => setWaMerch(e.target.value)}
+              className="border px-3 py-2 rounded w-64"
+              placeholder="628xxxxxxxxxx"
+              required
+              disabled={waLoading}
+            />
+          </div>
+          <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700" disabled={waLoading}>
+            {waLoading ? "Menyimpan..." : "Simpan"}
+          </button>
+          {waMsg && <span className="text-sm ml-2">{waMsg}</span>}
+        </form>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4 mb-8">

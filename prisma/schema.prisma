@@ -181,6 +181,15 @@ model Document {
   createdAt DateTime @default(now())
 }
 
+// Add Settings model for storing WhatsApp numbers
+model Settings {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 // Model Address untuk menyimpan alamat pelanggan
 model Address {
   id              String @id @default(auto()) @map("_id") @db.ObjectId
