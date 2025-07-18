@@ -9,6 +9,7 @@ import {
   Camera,
   ShieldCheck,
   LayoutDashboard,
+  ShoppingCart,
 } from "lucide-react";
 
 const links = [
@@ -25,6 +26,11 @@ const links = [
     name: "Merchandise",
     href: "/dashboard/manajemen-merchandise",
     icon: ShoppingBag,
+  },
+  {
+    name: "Manage Pesanan",
+    href: "/dashboard/manajemen-order",
+    icon: ShoppingCart,
   },
   {
     name: "Dokumentasi",

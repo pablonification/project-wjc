@@ -224,8 +224,8 @@ model Address {
 enum OrderStatus {
   PENDING
   PAID
-  SHIPPED
-  DELIVERED
+  SHIPPING
+  COMPLETED
   CANCELLED
 }
 

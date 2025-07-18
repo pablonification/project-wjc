@@ -46,6 +46,20 @@ const MyOrdersPage = () => {
     }
   };
 
+  const handleConfirmReceived = async (orderId) => {
+    const res = await fetch(`/api/orders/${orderId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "COMPLETED" }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      setOrders(orders => orders.map(o => o.id === orderId ? updated : o));
+    } else {
+      alert("Gagal konfirmasi penerimaan barang");
+    }
+  };
+
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
       <Navbar />
@@ -70,10 +84,17 @@ const MyOrdersPage = () => {
                         Tanggal: {new Date(order.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                       </p>
                       <div className="flex items-center gap-4">
-                        <img src={order.merchandise.imageUrls[0]} alt={order.merchandise.name} className="w-16 h-16 rounded-md object-cover" />
+                        <img
+                          src={order.merchandise?.imageUrls?.[0] || "/assets/image/Placeholder.png"}
+                          alt={order.merchandise?.name || "Produk tidak ditemukan"}
+                          className="w-16 h-16 rounded-md object-cover"
+                        />
                         <div>
                           <p className="font-semibold">{order.merchandise.name}</p>
                           <p className="text-sm text-gray-400">{order.quantity} x Rp{new Intl.NumberFormat('id-ID').format(order.unitPrice)}</p>
+                          {order.resi && (
+                            <p className="text-xs text-gray-400 mt-1">Resi: <span className="font-mono">{order.resi}</span></p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -84,6 +105,19 @@ const MyOrdersPage = () => {
                         <a href={order.xenditPaymentUrl} target="_blank" rel="noopener noreferrer" className="inline-block mt-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
                           Bayar Sekarang
                         </a>
+                      )}
+                      {order.status === 'SHIPPING' && (
+                        <button
+                          className="inline-block mt-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm cursor-pointer"
+                          onClick={() => handleConfirmReceived(order.id)}
+                        >
+                          Konfirmasi Barang Diterima
+                        </button>
+                      )}
+                      {order.status === 'SHIPPING' && (
+                        <p className="text-sm text-gray-400 mt-2">
+                          Klik tombol di atas jika barang sudah diterima.
+                        </p>
                       )}
                     </div>
                   </div>
