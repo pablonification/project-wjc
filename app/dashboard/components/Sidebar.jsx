@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   LayoutDashboard,
   ShoppingCart,
+  ClipboardList, // Icon baru
 } from "lucide-react";
 
 const links = [
@@ -23,12 +24,17 @@ const links = [
   { name: "Berita", href: "/dashboard/manajemen-berita", icon: Newspaper },
   { name: "Kegiatan", href: "/dashboard/manajemen-kegiatan", icon: Calendar },
   {
+    name: "Pendaftaran Kegiatan",
+    href: "/dashboard/manajemen-pendaftaran-kegiatan",
+    icon: ClipboardList,
+  },
+  {
     name: "Merchandise",
     href: "/dashboard/manajemen-merchandise",
     icon: ShoppingBag,
   },
   {
-    name: "Manage Pesanan",
+    name: "Manajemen Pesanan",
     href: "/dashboard/manajemen-order",
     icon: ShoppingCart,
   },
@@ -66,7 +72,6 @@ export default function Sidebar() {
           );
         })}
         <div className="hidden h-auto w-full grow rounded-md bg-gray-800 md:block"></div>
-        {/* Optional: Add a sign-out button here */}
       </div>
     </div>
   );

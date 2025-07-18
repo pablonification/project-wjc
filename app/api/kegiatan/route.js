@@ -1,106 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import slugify from "slugify";
 
-export async function POST(request, { params }) {
-  try {
-    const { slug } = params;
-    const body = await request.json();
-    const {
-      userId,
-      tshirtSize,
-      needAccommodation,
-      roomType,
-      tshirtPrice,
-      accommodationPrice,
-      totalPrice
-    } = body;
-
-    if (!userId || !tshirtSize || totalPrice === undefined) {
-      return NextResponse.json({ message: "Data tidak lengkap" }, { status: 400 });
-    }
-
-    const activity = await prisma.kegiatan.findUnique({ where: { slug } });
-    if (!activity) {
-      return NextResponse.json({ message: "Kegiatan tidak ditemukan" }, { status: 404 });
-    }
-    
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-        return NextResponse.json({ message: "User tidak ditemukan" }, { status: 404 });
-    }
-
-    const existingRegistration = await prisma.activityRegistration.findFirst({
-      where: { userId, activityId: activity.id }
-    });
-    if (existingRegistration) {
-      return NextResponse.json({ message: "Anda sudah terdaftar untuk kegiatan ini" }, { status: 400 });
-    }
-
-    const xenditPayload = {
-      external_id: `activity-${activity.id}-${userId}-${Date.now()}`,
-      amount: totalPrice,
-      description: `Pendaftaran ${activity.title}`,
-      invoice_duration: 86400,
-      customer: {
-        given_names: user.name,
-        email: "participant@example.com", // Ganti jika Anda menyimpan email
-        mobile_number: user.phoneNumber
-      },
-      customer_notification_preference: {
-        invoice_created: ["email"],
-        invoice_reminder: ["email"],
-        invoice_paid: ["email"]
-      },
-      success_redirect_url: `${process.env.NEXT_PUBLIC_BASE_URL}/kegiatan/${slug}/payment/success`,
-      failure_redirect_url: `${process.env.NEXT_PUBLIC_BASE_URL}/kegiatan/${slug}/payment/failed`,
-      notification_urls: [process.env.XENDIT_CALLBACK_URL] // Mengirim URL Webhook secara dinamis
-    };
-
-    const xenditResponse = await fetch("https://api.xendit.co/v2/invoices", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Basic ${Buffer.from(process.env.XENDIT_SECRET_KEY + ":").toString("base64")}`
-      },
-      body: JSON.stringify(xenditPayload)
-    });
-
-    if (!xenditResponse.ok) {
-      const errorData = await xenditResponse.json();
-      console.error("Xendit error:", errorData);
-      return NextResponse.json({ message: "Gagal membuat link pembayaran" }, { status: 500 });
-    }
-
-    const xenditData = await xenditResponse.json();
-
-    const registration = await prisma.activityRegistration.create({
-      data: {
-        userId,
-        activityId: activity.id,
-        tshirtSize,
-        needAccommodation: needAccommodation || false,
-        roomType: needAccommodation ? roomType : null,
-        tshirtPrice,
-        accommodationPrice: accommodationPrice || 0,
-        totalPrice,
-        paymentStatus: "PENDING",
-        paymentId: xenditData.id,
-        paymentUrl: xenditData.invoice_url
-      }
-    });
-
-    return NextResponse.json({
-      registration,
-      paymentUrl: xenditData.invoice_url,
-      paymentId: xenditData.id
-    }, { status: 201 });
-
-  } catch (error) {
-    console.error("Error creating activity registration:", error);
-    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
-  }
-}
-
+// GET all activities
 export async function GET() {
   try {
     const kegiatan = await prisma.kegiatan.findMany({
@@ -113,6 +15,79 @@ export async function GET() {
     console.error("Error fetching kegiatan:", error);
     return NextResponse.json(
       { message: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// POST: Create a new activity
+export async function POST(request) {
+  try {
+    const body = await request.json();
+    const {
+      title,
+      description,
+      dateStart,
+      dateEnd,
+      location,
+      status,
+      imageUrl,
+      attachmentUrls,
+      accommodationName,
+      accommodationPriceSharing,
+      accommodationPriceSingle,
+      registrationFee,
+      tshirtPriceS,
+      tshirtPriceM,
+      tshirtPriceL,
+      tshirtPriceXL,
+      tshirtPriceXXL,
+      tshirtPriceXXXL,
+    } = body;
+
+    if (!title || !description || !dateStart || !location) {
+      return NextResponse.json(
+        { message: "Field wajib belum lengkap" },
+        { status: 400 }
+      );
+    }
+
+    const slugBase = slugify(title, { lower: true, strict: true });
+    let slug = slugBase;
+    let counter = 1;
+    while (await prisma.kegiatan.findUnique({ where: { slug } })) {
+      slug = `${slugBase}-${counter++}`;
+    }
+
+    const newKegiatan = await prisma.kegiatan.create({
+      data: {
+        title,
+        slug,
+        description,
+        dateStart: new Date(dateStart),
+        dateEnd: dateEnd ? new Date(dateEnd) : null,
+        location,
+        status,
+        imageUrl,
+        attachmentUrls: Array.isArray(attachmentUrls) ? attachmentUrls : [],
+        registrationFee: registrationFee ? parseInt(registrationFee) : 0,
+        accommodationName: accommodationName || null,
+        accommodationPriceSharing: accommodationPriceSharing ? parseInt(accommodationPriceSharing) : null,
+        accommodationPriceSingle: accommodationPriceSingle ? parseInt(accommodationPriceSingle) : null,
+        tshirtPriceS: tshirtPriceS ? parseInt(tshirtPriceS) : null,
+        tshirtPriceM: tshirtPriceM ? parseInt(tshirtPriceM) : null,
+        tshirtPriceL: tshirtPriceL ? parseInt(tshirtPriceL) : null,
+        tshirtPriceXL: tshirtPriceXL ? parseInt(tshirtPriceXL) : null,
+        tshirtPriceXXL: tshirtPriceXXL ? parseInt(tshirtPriceXXL) : null,
+        tshirtPriceXXXL: tshirtPriceXXXL ? parseInt(tshirtPriceXXXL) : null,
+      },
+    });
+
+    return NextResponse.json(newKegiatan, { status: 201 });
+  } catch (error) {
+    console.error("Error creating kegiatan:", error);
+    return NextResponse.json(
+      { message: "Gagal membuat kegiatan." },
       { status: 500 }
     );
   }
