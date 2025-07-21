@@ -18,7 +18,8 @@ export async function GET() {
             title: true,
             slug: true,
             location: true,
-            dateStart: true
+            dateStart: true,
+            imageUrl: true,
           }
         }
       },

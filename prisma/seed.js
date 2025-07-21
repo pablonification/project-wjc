@@ -49,6 +49,18 @@ async function main() {
   });
 
   console.log('✅ Akun admin berhasil dibuat!');
+
+  // Seed WhatsApp numbers for kegiatan and merchandise
+  await prisma.settings.upsert({
+    where: { key: 'wa_kegiatan' },
+    update: { value: '6285155347701' },
+    create: { key: 'wa_kegiatan', value: '6285155347701' },
+  });
+  await prisma.settings.upsert({
+    where: { key: 'wa_merch' },
+    update: { value: '6285155347701' },
+    create: { key: 'wa_merch', value: '6285155347701' },
+  });
 }
 
 main()

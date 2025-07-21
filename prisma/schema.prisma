@@ -167,7 +167,6 @@ model Merchandise {
   name        String
   slug        String   @unique
   price       Int
-  category    String
   description String?
   imageUrls   String[]
   createdAt   DateTime @default(now())
@@ -182,6 +181,15 @@ model Document {
   name      String
   url       String
   createdAt DateTime @default(now())
+}
+
+// Add Settings model for storing WhatsApp numbers
+model Settings {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // Model Address untuk menyimpan alamat pelanggan
@@ -219,8 +227,8 @@ model Address {
 enum OrderStatus {
   PENDING
   PAID
-  SHIPPED
-  DELIVERED
+  SHIPPING
+  COMPLETED
   CANCELLED
 }
 

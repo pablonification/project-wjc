@@ -2,13 +2,15 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import slugify from "slugify";
 
-// GET: list all activities ordered by dateStart desc
+// GET all activities
 export async function GET() {
   try {
-    const activities = await prisma.kegiatan.findMany({
-      orderBy: { dateStart: "desc" },
+    const kegiatan = await prisma.kegiatan.findMany({
+      orderBy: {
+        dateStart: "desc", // Mengurutkan dari yang terbaru
+      },
     });
-    return NextResponse.json(activities, { status: 200 });
+    return NextResponse.json(kegiatan, { status: 200 });
   } catch (error) {
     console.error("Error fetching kegiatan:", error);
     return NextResponse.json(
@@ -18,7 +20,7 @@ export async function GET() {
   }
 }
 
-// POST: create a new activity
+// POST: Create a new activity
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -31,12 +33,10 @@ export async function POST(request) {
       status,
       imageUrl,
       attachmentUrls,
-      registrationFee,
-      // Accommodation fields
       accommodationName,
       accommodationPriceSharing,
       accommodationPriceSingle,
-      // T-shirt pricing fields
+      registrationFee,
       tshirtPriceS,
       tshirtPriceM,
       tshirtPriceL,
@@ -59,23 +59,21 @@ export async function POST(request) {
       slug = `${slugBase}-${counter++}`;
     }
 
-    const activity = await prisma.kegiatan.create({
+    const newKegiatan = await prisma.kegiatan.create({
       data: {
         title,
+        slug,
         description,
         dateStart: new Date(dateStart),
-        dateEnd: dateEnd ? new Date(dateEnd) : undefined,
+        dateEnd: dateEnd ? new Date(dateEnd) : null,
         location,
         status,
         imageUrl,
         attachmentUrls: Array.isArray(attachmentUrls) ? attachmentUrls : [],
         registrationFee: registrationFee ? parseInt(registrationFee) : 0,
-        slug,
-        // Accommodation fields
         accommodationName: accommodationName || null,
         accommodationPriceSharing: accommodationPriceSharing ? parseInt(accommodationPriceSharing) : null,
         accommodationPriceSingle: accommodationPriceSingle ? parseInt(accommodationPriceSingle) : null,
-        // T-shirt pricing fields
         tshirtPriceS: tshirtPriceS ? parseInt(tshirtPriceS) : null,
         tshirtPriceM: tshirtPriceM ? parseInt(tshirtPriceM) : null,
         tshirtPriceL: tshirtPriceL ? parseInt(tshirtPriceL) : null,
@@ -85,11 +83,11 @@ export async function POST(request) {
       },
     });
 
-    return NextResponse.json(activity, { status: 201 });
+    return NextResponse.json(newKegiatan, { status: 201 });
   } catch (error) {
     console.error("Error creating kegiatan:", error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Gagal membuat kegiatan." },
       { status: 500 }
     );
   }

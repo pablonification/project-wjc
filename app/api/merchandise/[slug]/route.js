@@ -37,11 +37,11 @@ export async function PUT(request, { params }) {
   try {
     const { slug } = params;
     const body = await request.json();
-    const { name, price, category, description, imageUrls } = body;
+    const { name, price, description, imageUrls } = body;
 
-    if (!name || !price || !category) {
+    if (!name || !price) {
       return NextResponse.json(
-        { message: "Nama, harga, dan kategori wajib diisi" },
+        { message: "Nama dan harga wajib diisi" },
         { status: 400 }
       );
     }
@@ -51,7 +51,6 @@ export async function PUT(request, { params }) {
       data: {
         name,
         price: parseInt(price, 10),
-        category,
         description,
         imageUrls: Array.isArray(imageUrls) ? imageUrls : [],
       },

@@ -4,6 +4,22 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
+// Skeleton loader for the news list
+function BeritaListSkeleton() {
+  return (
+    <>
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="flex flex-col animate-pulse font-manrope">
+          <div className="w-full h-56 bg-gray-700 rounded mb-4" />
+          <div className="h-4 w-1/3 bg-gray-700 rounded mb-2" />
+          <div className="h-6 w-2/3 bg-gray-700 rounded mb-2" />
+          <div className="h-4 w-full bg-gray-700 rounded" />
+        </div>
+      ))}
+    </>
+  );
+}
+
 const NewsCard = ({ category, date, title, description, slug, imageUrl }) => {
   return (
     <Link href={`/berita/${slug}`} className="flex flex-col font-manrope">
@@ -29,10 +45,12 @@ const NewsCard = ({ category, date, title, description, slug, imageUrl }) => {
 export default function Berita() {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(6); // Show 6 news items initially
 
   useEffect(() => {
     const fetchNews = async () => {
       try {
+        setLoading(true);
         const res = await fetch("/api/berita");
         if (!res.ok) throw new Error("Gagal mengambil data berita");
         const data = await res.json();
@@ -45,6 +63,10 @@ export default function Berita() {
     };
     fetchNews();
   }, []);
+
+  const handleShowMore = () => {
+    setVisibleCount(prevCount => prevCount + 6);
+  };
 
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
@@ -64,9 +86,9 @@ export default function Berita() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-28 mt-3 py-24">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16 font-manrope">
             {loading ? (
-              <p className="text-white">Memuat...</p>
-            ) : news.length ? (
-              news.map((item, index) => (
+              <BeritaListSkeleton />
+            ) : news.length > 0 ? (
+              news.slice(0, visibleCount).map((item, index) => (
                 <NewsCard
                   key={index}
                   category={item.category}
@@ -86,9 +108,9 @@ export default function Berita() {
             )}
           </div>
 
-          <div className="text-center mt-20 flex justify-center">
-            <Link href="/berita">
-              <button className="py-2 px-48 bg-[#403E3D] flex items-center gap-2 cursor-pointer font-manrope">
+          {news.length > visibleCount && (
+            <div className="text-center mt-20 flex justify-center">
+              <button onClick={handleShowMore} className="py-2 px-8 sm:px-24 md:px-36 lg:px-48 bg-[#403E3D] flex items-center gap-2 cursor-pointer font-manrope w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl justify-center">
                 <p className="text-white font-manrope text-lg">Show More</p>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -105,8 +127,8 @@ export default function Berita() {
                   />
                 </svg>
               </button>
-            </Link>
-          </div>
+            </div>
+          )}
         </div>
       </section>
       <Footer />

@@ -1,42 +1,40 @@
-import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import crypto from "crypto";
+// app/api/webhooks/xendit/route.js
+
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
 
 export async function POST(request) {
   try {
-    const body = await request.text();
+    const body = await request.json();
+    console.log('=== XENDIT WEBHOOK DITERIMA ===');
+    console.log('Payload:', JSON.stringify(body, null, 2));
+
     const signature = request.headers.get('x-callback-token');
+    const webhookSecret = process.env.XENDIT_WEBHOOK_TOKEN;
+
+    // --- TAMBAHKAN LOG INI UNTUK DEBUGGING ---
+    console.log(`Webhook Secret dari env: ${webhookSecret ? '*** DITEMUKAN ***' : '!!! TIDAK DITEMUKAN !!!'}`);
     
-    // Verify webhook signature (optional but recommended)
-    if (process.env.XENDIT_WEBHOOK_TOKEN && signature !== process.env.XENDIT_WEBHOOK_TOKEN) {
-      return NextResponse.json(
-        { message: "Invalid signature" },
-        { status: 401 }
-      );
+    if (!webhookSecret) {
+      console.error('XENDIT_WEBHOOK_TOKEN tidak diatur di environment variables.');
+      // Pesan error ini yang Anda lihat
+      return NextResponse.json({ message: "Webhook secret not configured." }, { status: 500 });
     }
 
-    const data = JSON.parse(body);
-    
-    // Extract order ID from external_id
-    const externalId = data.external_id;
-    const orderId = externalId.replace('order_', '');
-
-    // Find order in database
-    const order = await prisma.order.findUnique({
-      where: { id: orderId }
-    });
-
-    if (!order) {
-      return NextResponse.json(
-        { message: "Order not found" },
-        { status: 404 }
-      );
+    if (signature !== webhookSecret) {
+        console.error('Token webhook tidak valid.');
+        return NextResponse.json({ message: "Invalid token" }, { status: 401 });
     }
-
-    // Update order status based on Xendit status
-    let newStatus = order.status;
     
-    switch (data.status) {
+    console.log('Token webhook berhasil diverifikasi.');
+
+    // ... sisa logika Anda ...
+
+    // (Kode Anda selanjutnya sudah benar, tidak perlu diubah)
+    const { external_id, status, id: paymentId } = body;
+    let newStatus;
+
+    switch (status) {
       case 'PAID':
         newStatus = 'PAID';
         break;
@@ -45,24 +43,34 @@ export async function POST(request) {
         newStatus = 'CANCELLED';
         break;
       default:
-        newStatus = 'PENDING';
+        console.log(`Webhook untuk status ${status} diterima, tidak ada tindakan.`);
+        return NextResponse.json({ message: "Webhook diproses, tidak ada perubahan status." }, { status: 200 });
     }
 
-    // Update order in database
-    await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        status: newStatus,
-        xenditStatus: data.status
-      }
-    });
+    if (external_id.startsWith('order_')) {
+      const orderId = external_id.replace('order_', '');
+      console.log(`Mengupdate order merchandise ${orderId} ke status ${newStatus}`);
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { status: newStatus, xenditStatus: status }
+      });
+    } else if (external_id.startsWith('activity-')) {
+      console.log(`Mengupdate registrasi kegiatan dengan payment ID ${paymentId} ke status ${newStatus}`);
+      await prisma.activityRegistration.updateMany({
+        where: { paymentId: paymentId },
+        data: { paymentStatus: newStatus }
+      });
+    } else {
+       console.warn(`Webhook diterima untuk format external_id yang tidak dikenal: ${external_id}`);
+    }
 
-    return NextResponse.json({ message: "Webhook processed successfully" }, { status: 200 });
+    return NextResponse.json({ message: "Webhook berhasil diproses" }, { status: 200 });
+
   } catch (error) {
-    console.error("Error processing Xendit webhook:", error);
+    console.error("Error memproses webhook Xendit:", error);
     return NextResponse.json(
-      { message: "Webhook processing failed" },
+      { message: "Pemrosesan webhook gagal", error: error.message },
       { status: 500 }
     );
   }
-} 
+}

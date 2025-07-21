@@ -47,53 +47,29 @@ export async function POST(request) {
       shippingCost
     } = body;
 
-    // Validasi data wajib
     if (!userId || !merchandiseId || !quantity || !shippingMethod) {
-      return NextResponse.json(
-        { message: "Data pesanan tidak lengkap" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Data pesanan tidak lengkap" }, { status: 400 });
     }
 
-    // Validasi jika shipping method adalah DELIVERY, addressId wajib
     if (shippingMethod === 'DELIVERY' && !addressId) {
-      return NextResponse.json(
-        { message: "Alamat pengiriman diperlukan untuk metode delivery" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Alamat pengiriman diperlukan untuk metode delivery" }, { status: 400 });
     }
 
-    // Ambil data merchandise
-    const merchandise = await prisma.merchandise.findUnique({
-      where: { id: merchandiseId }
-    });
-
+    const merchandise = await prisma.merchandise.findUnique({ where: { id: merchandiseId } });
     if (!merchandise) {
-      return NextResponse.json(
-        { message: "Produk tidak ditemukan" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "Produk tidak ditemukan" }, { status: 404 });
     }
 
-    // Hitung total
     const unitPrice = merchandise.price;
     const subtotal = unitPrice * quantity;
     const finalShippingCost = shippingMethod === 'PICKUP' ? 0 : (shippingCost || 0);
     const total = subtotal + finalShippingCost;
 
-    // Ambil data user untuk customer info
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    });
-
+    const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
-      return NextResponse.json(
-        { message: "User tidak ditemukan" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "User tidak ditemukan" }, { status: 404 });
     }
 
-    // Buat order di database
     const order = await prisma.order.create({
       data: {
         userId,
@@ -110,12 +86,11 @@ export async function POST(request) {
       }
     });
 
-    // Buat payment link dengan Xendit
     const xenditPayload = {
       external_id: `order_${order.id}`,
       amount: total,
       description: `Pembelian ${merchandise.name} x${quantity}`,
-      invoice_duration: 86400, // 24 jam
+      invoice_duration: 86400,
       customer: {
         given_names: user.name,
         mobile_number: user.phoneNumber
@@ -126,7 +101,8 @@ export async function POST(request) {
         invoice_paid: ["email", "sms"]
       },
       success_redirect_url: `${process.env.NEXT_PUBLIC_BASE_URL}/orders/${order.id}/success`,
-      failure_redirect_url: `${process.env.NEXT_PUBLIC_BASE_URL}/orders/${order.id}/failed`
+      failure_redirect_url: `${process.env.NEXT_PUBLIC_BASE_URL}/orders/${order.id}/failed`,
+      notification_urls: [process.env.XENDIT_CALLBACK_URL] // Mengirim URL Webhook secara dinamis
     };
 
     const xenditResponse = await fetch('https://api.xendit.co/v2/invoices', {
@@ -139,12 +115,13 @@ export async function POST(request) {
     });
 
     if (!xenditResponse.ok) {
+      const errorData = await xenditResponse.json();
+      console.error("Xendit API Error:", errorData);
       throw new Error('Failed to create Xendit payment link');
     }
 
     const xenditData = await xenditResponse.json();
 
-    // Update order dengan data Xendit
     const updatedOrder = await prisma.order.update({
       where: { id: order.id },
       data: {
@@ -161,9 +138,6 @@ export async function POST(request) {
     return NextResponse.json(updatedOrder, { status: 201 });
   } catch (error) {
     console.error("Error creating order:", error);
-    return NextResponse.json(
-      { message: "Gagal membuat pesanan" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Gagal membuat pesanan" }, { status: 500 });
   }
-} 
+}

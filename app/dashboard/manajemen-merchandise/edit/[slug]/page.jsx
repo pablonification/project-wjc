@@ -114,14 +114,6 @@ const EditMerchandisePage = () => {
             className="w-full border px-3 py-2 rounded"
             required
           />
-          <input
-            name="category"
-            value={form.category}
-            onChange={handleChange}
-            placeholder="Kategori"
-            className="w-full border px-3 py-2 rounded"
-            required
-          />
           <div className="flex flex-wrap gap-4">
             {existingImages.map((url, index) => (
                 <img key={index} src={url} alt={`Gambar produk ${index + 1}`} className="w-24 h-24 rounded object-cover" />
