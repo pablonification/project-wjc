@@ -8,7 +8,6 @@ import{Navbar, Footer} from './components'
 const page = () => {
   return (
     <div className="flex flex-col min-h-screen bg-black">
-      <Navbar />
       <div className="flex-1">
         <HeroSection/>
         <KegiatanSection/>

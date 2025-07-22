@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
+import cloudinary from 'cloudinary';
 
 const getJwtSecretKey = () => new TextEncoder().encode(process.env.JWT_SECRET);
 
@@ -26,9 +27,8 @@ export async function GET() {
   }
 }
 
-// Handler untuk DELETE (menghapus user)
 export async function DELETE(request) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get('token')?.value;
 
   if (!token) {
@@ -39,28 +39,41 @@ export async function DELETE(request) {
     const { payload } = await jwtVerify(token, await getJwtSecretKey());
     const { id: userIdToDelete } = await request.json();
 
-    // Best Practice: Mencegah admin menghapus akunnya sendiri
     if (payload.userId === userIdToDelete) {
       return NextResponse.json({ message: 'Anda tidak dapat menghapus akun Anda sendiri.' }, { status: 403 });
     }
 
-    // Cari user yang akan dihapus untuk mendapatkan whitelistId-nya
+    // Ambil user beserta whitelistId dan ktpPublicId
     const userToDelete = await prisma.user.findUnique({
       where: { id: userIdToDelete },
-      select: { whitelistId: true }
+      select: { whitelistId: true, ktpPublicId: true }
     });
 
     if (!userToDelete) {
-        return NextResponse.json({ message: 'User tidak ditemukan.' }, { status: 404 });
+      return NextResponse.json({ message: 'User tidak ditemukan.' }, { status: 404 });
     }
 
-    // Karena relasi kita `onDelete: Cascade`, menghapus Whitelist akan menghapus User.
-    // Ini adalah cara yang aman untuk menghapus keduanya.
-    await prisma.whitelist.delete({
-        where: { id: userToDelete.whitelistId }
+    // Hapus file Cloudinary jika ada ktpPublicId
+    if (userToDelete.ktpPublicId) {
+      cloudinary.v2.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+      });
+      try {
+        await cloudinary.v2.uploader.destroy(userToDelete.ktpPublicId);
+      } catch (err) {
+        console.error('Gagal hapus file Cloudinary:', err);
+      }
+    }
+
+    // Hapus user dari database
+    await prisma.user.delete({
+      where: { id: userIdToDelete }
     });
 
     return NextResponse.json({ message: 'User berhasil dihapus.' }, { status: 200 });
+    
   } catch (error) {
     console.error("Error saat menghapus user:", error);
     return NextResponse.json({ message: 'Gagal menghapus user.' }, { status: 500 });

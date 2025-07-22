@@ -1,4 +1,6 @@
 import { Geist, Geist_Mono, Manrope } from "next/font/google";
+import {Navbar} from "./components"
+import { SessionProvider } from "./context/SessionContext";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,7 +29,10 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} antialiased`}
       >
-        {children}
+        <SessionProvider>
+          <Navbar />
+          {children}
+        </SessionProvider>
       </body>
     </html>
   );

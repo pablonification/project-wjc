@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
+import { cookies } from 'next/headers';
+import { jwtVerify } from 'jose';
 
 /**
  * Handler untuk GET request
@@ -73,23 +75,41 @@ export async function POST(request) {
  * Handler untuk DELETE request
  * Menghapus nomor telepon dari whitelist berdasarkan ID
  */
+const getJwtSecretKey = () => new TextEncoder().encode(process.env.JWT_SECRET);
+
 export async function DELETE(request) {
   try {
-    const { id } = await request.json();
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+    if (!token) {
+      return NextResponse.json({ message: 'Tidak terautentikasi.' }, { status: 401 });
+    }
+    const { payload } = await jwtVerify(token, await getJwtSecretKey());
 
-    // --- Best Practice: Validasi Input ---
+    const { id } = await request.json();
     if (!id) {
       return NextResponse.json({ message: 'ID tidak boleh kosong' }, { status: 400 });
     }
 
-    // Menghapus data dari database berdasarkan ID
-    await prisma.whitelist.delete({
-      where: {
-        id: id,
-      },
+    // Cari whitelist yang akan dihapus
+    const whitelist = await prisma.whitelist.findUnique({ where: { id } });
+    if (!whitelist) {
+      return NextResponse.json({ message: 'Whitelist tidak ditemukan' }, { status: 404 });
+    }
+
+    // Cari user yang sedang login
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { phoneNumber: true }
     });
 
-    // Mengirim kembali pesan sukses dengan status 200 (OK)
+    // Cek apakah nomor whitelist ini milik user yang sedang login
+    if (user && user.phoneNumber === whitelist.phoneNumber) {
+      return NextResponse.json({ message: 'Anda tidak dapat menghapus whitelist milik sendiri.' }, { status: 403 });
+    }
+
+    // Lanjut hapus jika bukan milik sendiri
+    await prisma.whitelist.delete({ where: { id } });
     return NextResponse.json({ message: 'Nomor berhasil dihapus' }, { status: 200 });
   } catch (error) {
     console.error("Gagal menghapus nomor dari whitelist:", error);

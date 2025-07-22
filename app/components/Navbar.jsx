@@ -2,71 +2,52 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Logo } from "../../public/assets/image"; // Pastikan path ini benar
-import Button from "./Button"; // Pastikan path ini benar
-import { useState, useEffect, useRef } from "react";
+import { Logo } from "../../public/assets/image";
+import Button from "./Button";
+import { useState, useRef, useEffect} from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "../context/SessionContext";
+import { usePathname } from "next/navigation";
 
 const Navbar = () => {
+  const pathname = usePathname();
+  if (pathname.startsWith("/dashboard")) return null;
+  
+  const { fetchSession } = useSession();
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const router = useRouter();
   const dropdownRef = useRef(null);
 
-  // Fetch Session Data
-  const fetchSession = async () => {
-    try {
-      const res = await fetch('/api/auth/session');
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data.user);
-      } else {
-        console.log('Session fetch failed:', res.status);
-        setUser(null);
-      }
-    } catch (error) {
-      console.error("Gagal mengambil sesi:", error);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Refresh Session
-  const refreshSession = async () => {
-    setIsLoading(true);
-    await fetchSession();
-  };
-
-  // Fetch awal
-  useEffect(() => {
-    fetchSession();
-  }, []);
-
-  // Close Dropdown
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
+  const { user, isLoading, setUser } = useSession();
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
       setUser(null);
       setIsOpen(false);
       setIsDropdownOpen(false);
+      await fetchSession(); 
       router.push('/');
     } catch (error) {
       console.error("Gagal logout:", error);
     }
   };
+
+  useEffect(() => {
+    if (!isDropdownOpen) return;
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   const closeSidebar = () => setIsOpen(false);
 
@@ -86,77 +67,54 @@ const Navbar = () => {
       // Tampilan kalo udah login
       return (
         <div className={`flex items-center gap-4 ${isMobile ? 'flex-col items-start w-full' : ''}`}>
-          <div className="flex items-center gap-2 text-white">
-            <span>Hello, {user.name}!</span>
-          
-            
-            {/* Dropdown untuk Desktop */}
-            {!isMobile && (
-              <div className="relative" ref={dropdownRef}>
-                <button 
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)} 
-                  className="p-1 rounded-full hover:bg-gray-700 flex items-center gap-1"
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center gap-2 px-3 py-1 rounded-sm cursor-pointer hover:bg-gray-700 transition-colors"
+            >
+              <span>Hello, {user.nickname || user.name}!</span>
+              <svg
+                className={`w-4 h-4 text-white transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            {isDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20">
+                <Link
+                  href="/profile"
+                  onClick={() => setIsDropdownOpen(false)}
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 >
-                  {/* Icon dropdown */}
-                  <svg 
-                    className={`w-4 h-4 text-white transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
+                  Profile
+                </Link>
+                {isAdmin(user.role) && (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setIsDropdownOpen(false)}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                  </svg>
-                </button>
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20">
-                    <Link 
-                      href="/profile" 
-                      onClick={() => setIsDropdownOpen(false)} 
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Profile
-                    </Link>
-                    <Link 
-                      href="/profile/my-orders" 
-                      onClick={() => setIsDropdownOpen(false)} 
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Pesanan Saya
-                    </Link>
-                    <Link 
-                      href="/profile/my-activities" 
-                      onClick={() => setIsDropdownOpen(false)} 
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Kegiatan Saya
-                    </Link>
-                    {isAdmin(user.role) && (
-                      <Link 
-                        href="/dashboard" 
-                        onClick={() => setIsDropdownOpen(false)} 
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Dashboard
-                      </Link>
-                    )}
-                    <button 
-                      onClick={handleLogout} 
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Logout
-                    </button>
-                  </div>
+                    Dashboard
+                  </Link>
                 )}
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Logout
+                </button>
               </div>
             )}
           </div>
-
           {/* Tampilan untuk Mobile */}
           {isMobile && (
             <>
-              <Link 
-                href="/profile" 
-                onClick={closeSidebar} 
+              <Link
+                href="/profile"
+                onClick={closeSidebar}
                 className="p-2 w-full text-left rounded-md hover:text-red-600 hover:bg-gray-800 flex items-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -185,9 +143,9 @@ const Navbar = () => {
                 Kegiatan Saya
               </Link>
               {isAdmin(user.role) && (
-                <Link 
-                  href="/dashboard" 
-                  onClick={closeSidebar} 
+                <Link
+                  href="/dashboard"
+                  onClick={closeSidebar}
                   className="p-2 w-full text-left rounded-md hover:text-red-600 hover:bg-gray-800 flex items-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,8 +154,8 @@ const Navbar = () => {
                   Dashboard
                 </Link>
               )}
-              <button 
-                onClick={handleLogout} 
+              <button
+                onClick={handleLogout}
                 className="p-2 w-full text-left text-red-500 rounded-md hover:bg-gray-800 flex items-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -224,7 +182,7 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="fixed top-0 z-[1000] w-full px-8 lg:px-18 py-3 flex justify-between items-center bg-transparent backdrop-blur-lg">
+      <header className="fixed top-0 z-[1000] w-full px-8 lg:px-18 py-3 flex justify-between items-center bg-transparent backdrop-blur-sm">
         <Link href="/" className={`${isOpen ? "invisible" : "visible"} lg:visible`}>
           <div className="relative w-10 h-10 lg:w-12 lg:h-12">
             <Image
