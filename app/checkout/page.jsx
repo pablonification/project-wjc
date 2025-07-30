@@ -275,8 +275,8 @@ const CheckoutPage = () => {
 
       if (res.ok) {
         const order = await res.json();
-        if (order.xenditPaymentUrl) {
-          window.location.href = order.xenditPaymentUrl;
+        if (order.midtransRedirectUrl) {
+          window.location.href = order.midtransRedirectUrl;
         } else {
           router.push(`/orders/${order.id}/success`);
         }

@@ -1,12 +1,20 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import Midtrans from "midtrans-client";
+
+// Inisialisasi Midtrans Snap
+let snap = new Midtrans.Snap({
+  isProduction: process.env.MIDTRANS_IS_PRODUCTION === "true",
+  serverKey: process.env.MIDTRANS_SERVER_KEY,
+  clientKey: process.env.MIDTRANS_CLIENT_KEY,
+});
 
 // GET: list all orders for user
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-    
+    const userId = searchParams.get("userId");
+
     if (!userId) {
       return NextResponse.json(
         { message: "User ID diperlukan" },
@@ -18,9 +26,9 @@ export async function GET(request) {
       where: { userId },
       include: {
         merchandise: true,
-        address: true
+        address: true,
       },
-      orderBy: { createdAt: "desc" }
+      orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json(orders, { status: 200 });
@@ -33,7 +41,7 @@ export async function GET(request) {
   }
 }
 
-// POST: create new order with Xendit payment link
+// POST: create new order with Midtrans payment link
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -44,100 +52,107 @@ export async function POST(request) {
       quantity,
       shippingMethod,
       courierService,
-      shippingCost
+      shippingCost,
     } = body;
 
     if (!userId || !merchandiseId || !quantity || !shippingMethod) {
-      return NextResponse.json({ message: "Data pesanan tidak lengkap" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Data pesanan tidak lengkap" },
+        { status: 400 }
+      );
     }
 
-    if (shippingMethod === 'DELIVERY' && !addressId) {
-      return NextResponse.json({ message: "Alamat pengiriman diperlukan untuk metode delivery" }, { status: 400 });
+    if (shippingMethod === "DELIVERY" && !addressId) {
+      return NextResponse.json(
+        { message: "Alamat pengiriman diperlukan untuk metode delivery" },
+        { status: 400 }
+      );
     }
 
-    const merchandise = await prisma.merchandise.findUnique({ where: { id: merchandiseId } });
+    const merchandise = await prisma.merchandise.findUnique({
+      where: { id: merchandiseId },
+    });
     if (!merchandise) {
-      return NextResponse.json({ message: "Produk tidak ditemukan" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Produk tidak ditemukan" },
+        { status: 404 }
+      );
     }
 
     const unitPrice = merchandise.price;
     const subtotal = unitPrice * quantity;
-    const finalShippingCost = shippingMethod === 'PICKUP' ? 0 : (shippingCost || 0);
+    const finalShippingCost =
+      shippingMethod === "PICKUP" ? 0 : shippingCost || 0;
     const total = subtotal + finalShippingCost;
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
-      return NextResponse.json({ message: "User tidak ditemukan" }, { status: 404 });
+      return NextResponse.json(
+        { message: "User tidak ditemukan" },
+        { status: 404 }
+      );
     }
 
     const order = await prisma.order.create({
       data: {
         userId,
         merchandiseId,
-        addressId: shippingMethod === 'DELIVERY' ? addressId : null,
+        addressId: shippingMethod === "DELIVERY" ? addressId : null,
         quantity,
         unitPrice,
         subtotal,
         shippingCost: finalShippingCost,
         total,
         shippingMethod,
-        courierService: shippingMethod === 'DELIVERY' ? courierService : null,
-        status: 'PENDING'
-      }
+        courierService: shippingMethod === "DELIVERY" ? courierService : null,
+        status: "PENDING",
+      },
     });
 
-    const xenditPayload = {
-      external_id: `order_${order.id}`,
-      amount: total,
-      description: `Pembelian ${merchandise.name} x${quantity}`,
-      invoice_duration: 86400,
-      customer: {
-        given_names: user.name,
-        mobile_number: user.phoneNumber
+    let parameter = {
+      transaction_details: {
+        order_id: `order-${order.id}`,
+        gross_amount: total,
       },
-      customer_notification_preference: {
-        invoice_created: ["email", "sms"],
-        invoice_reminder: ["email", "sms"],
-        invoice_paid: ["email", "sms"]
+      customer_details: {
+        first_name: user.name,
+        phone: user.phoneNumber,
       },
-      success_redirect_url: `${process.env.NEXT_PUBLIC_BASE_URL}/orders/${order.id}/success`,
-      failure_redirect_url: `${process.env.NEXT_PUBLIC_BASE_URL}/orders/${order.id}/failed`,
-      notification_urls: [process.env.XENDIT_CALLBACK_URL] // Mengirim URL Webhook secara dinamis
+      item_details: [
+        {
+          id: merchandise.id,
+          price: unitPrice,
+          quantity: quantity,
+          name: merchandise.name,
+        },
+      ],
+      callbacks: {
+        finish: `${process.env.NEXT_PUBLIC_BASE_URL}/orders/${order.id}/success`,
+        error: `${process.env.NEXT_PUBLIC_BASE_URL}/orders/${order.id}/failed`,
+        pending: `${process.env.NEXT_PUBLIC_BASE_URL}/orders/${order.id}/pending`,
+      },
     };
 
-    const xenditResponse = await fetch('https://api.xendit.co/v2/invoices', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${Buffer.from(process.env.XENDIT_SECRET_KEY + ':').toString('base64')}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(xenditPayload)
-    });
-
-    if (!xenditResponse.ok) {
-      const errorData = await xenditResponse.json();
-      console.error("Xendit API Error:", errorData);
-      throw new Error('Failed to create Xendit payment link');
-    }
-
-    const xenditData = await xenditResponse.json();
+    const transaction = await snap.createTransaction(parameter);
 
     const updatedOrder = await prisma.order.update({
       where: { id: order.id },
       data: {
-        xenditPaymentId: xenditData.id,
-        xenditPaymentUrl: xenditData.invoice_url,
-        xenditStatus: xenditData.status
+        midtransToken: transaction.token,
+        midtransRedirectUrl: transaction.redirect_url,
       },
       include: {
         merchandise: true,
-        address: true
-      }
+        address: true,
+      },
     });
 
     return NextResponse.json(updatedOrder, { status: 201 });
   } catch (error) {
     console.error("Error creating order:", error);
-    return NextResponse.json({ message: "Gagal membuat pesanan" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Gagal membuat pesanan" },
+      { status: 500 }
+    );
   }
 }

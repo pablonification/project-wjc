@@ -57,11 +57,11 @@ model Otp {
 model User {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
   name            String
-  nickname        String?   // Nama Panggilan
-  chapter         String?   // Asal Chapter
+  nickname        String? // Nama Panggilan
+  chapter         String? // Asal Chapter
   phoneNumber     String   @unique
   password        String   // Akan menyimpan password yang sudah di-hash
-  ktpUrl          String?   // URL Foto KTP
+  ktpUrl          String? // URL Foto KTP
   ktpPublicId     String?
   role            Role     @default(MEMBER)
   createdAt       DateTime @default(now())
@@ -120,7 +120,6 @@ model Kegiatan {
   tshirtPriceXL   Int?
   tshirtPriceXXL  Int?
   tshirtPriceXXXL Int?
-  
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   
@@ -145,7 +144,7 @@ model ActivityRegistration {
   
   // Accommodation options
   needAccommodation Boolean  @default(false)
-  roomType          String?  // "sharing" or "single"
+  roomType          String? // "sharing" or "single"
   
   // Pricing
   tshirtPrice       Int
@@ -154,8 +153,8 @@ model ActivityRegistration {
   
   // Payment info
   paymentStatus     PaymentStatus @default(PENDING)
-  paymentId         String?
-  paymentUrl        String?
+  midtransToken     String?
+  midtransRedirectUrl String?
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -267,14 +266,13 @@ model Order {
   
   status            OrderStatus @default(PENDING)
   
-  // Xendit payment link data
-  xenditPaymentId   String?
-  xenditPaymentUrl  String?
-  xenditStatus      String?
-  
+  // Midtrans payment data
+  midtransToken     String?
+  midtransRedirectUrl String?
+  midtransStatus    String?
+
   // Tracking
   resi              String?
-  
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }

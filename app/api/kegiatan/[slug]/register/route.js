@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import Midtrans from "midtrans-client";
+
+// Inisialisasi Midtrans Snap
+let snap = new Midtrans.Snap({
+  isProduction: process.env.MIDTRANS_IS_PRODUCTION === "true",
+  serverKey: process.env.MIDTRANS_SERVER_KEY,
+  clientKey: process.env.MIDTRANS_CLIENT_KEY,
+});
 
 export async function POST(request, { params }) {
   try {
@@ -12,11 +20,16 @@ export async function POST(request, { params }) {
       roomType,
       tshirtPrice,
       accommodationPrice,
-      totalPrice
+      totalPrice,
     } = body;
 
     // Validate required fields
-    if (!userId || !tshirtSize || !tshirtPrice || totalPrice === undefined) {
+    if (
+      !userId ||
+      !tshirtSize ||
+      tshirtPrice === undefined ||
+      totalPrice === undefined
+    ) {
       return NextResponse.json(
         { message: "Data tidak lengkap" },
         { status: 400 }
@@ -25,7 +38,7 @@ export async function POST(request, { params }) {
 
     // Get activity by slug
     const activity = await prisma.kegiatan.findUnique({
-      where: { slug }
+      where: { slug },
     });
 
     if (!activity) {
@@ -35,12 +48,20 @@ export async function POST(request, { params }) {
       );
     }
 
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return NextResponse.json(
+        { message: "User tidak ditemukan" },
+        { status: 404 }
+      );
+    }
+
     // Check if user already registered for this activity
     const existingRegistration = await prisma.activityRegistration.findFirst({
       where: {
         userId,
-        activityId: activity.id
-      }
+        activityId: activity.id,
+      },
     });
 
     if (existingRegistration) {
@@ -50,46 +71,7 @@ export async function POST(request, { params }) {
       );
     }
 
-    // Create Xendit payment link
-    const xenditPayload = {
-      external_id: `activity-${activity.id}-${userId}-${Date.now()}`,
-      amount: totalPrice,
-      description: `Pendaftaran ${activity.title}`,
-      invoice_duration: 86400, // 24 hours
-      customer: {
-        given_names: "Peserta",
-        email: "participant@example.com"
-      },
-      customer_notification_preference: {
-        invoice_created: ["email"],
-        invoice_reminder: ["email"],
-        invoice_paid: ["email"]
-      },
-      success_redirect_url: `${process.env.NEXT_PUBLIC_BASE_URL}/kegiatan/${slug}/payment/success`,
-      failure_redirect_url: `${process.env.NEXT_PUBLIC_BASE_URL}/kegiatan/${slug}/payment/failed`
-    };
-
-    const xenditResponse = await fetch("https://api.xendit.co/v2/invoices", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Basic ${Buffer.from(process.env.XENDIT_SECRET_KEY + ":").toString("base64")}`
-      },
-      body: JSON.stringify(xenditPayload)
-    });
-
-    if (!xenditResponse.ok) {
-      const errorData = await xenditResponse.json();
-      console.error("Xendit error:", errorData);
-      return NextResponse.json(
-        { message: "Gagal membuat link pembayaran" },
-        { status: 500 }
-      );
-    }
-
-    const xenditData = await xenditResponse.json();
-
-    // Create registration record
+    // Create registration record first to get an ID
     const registration = await prisma.activityRegistration.create({
       data: {
         userId,
@@ -101,17 +83,50 @@ export async function POST(request, { params }) {
         accommodationPrice: accommodationPrice || 0,
         totalPrice,
         paymentStatus: "PENDING",
-        paymentId: xenditData.id,
-        paymentUrl: xenditData.invoice_url
-      }
+      },
     });
 
-    return NextResponse.json({
-      registration,
-      paymentUrl: xenditData.invoice_url,
-      paymentId: xenditData.id
-    }, { status: 201 });
+    // Create Midtrans payment link
+    let parameter = {
+      transaction_details: {
+        order_id: `activity-${registration.id}`,
+        gross_amount: totalPrice,
+      },
+      customer_details: {
+        first_name: user.name,
+        phone: user.phoneNumber,
+      },
+      item_details: [
+        {
+          id: activity.id,
+          price: totalPrice,
+          quantity: 1,
+          name: `Pendaftaran ${activity.title}`,
+        },
+      ],
+      callbacks: {
+        finish: `${process.env.NEXT_PUBLIC_BASE_URL}/kegiatan/${slug}/payment/success`,
+      },
+    };
 
+    const transaction = await snap.createTransaction(parameter);
+
+    // Update registration with Midtrans info
+    const updatedRegistration = await prisma.activityRegistration.update({
+      where: { id: registration.id },
+      data: {
+        midtransToken: transaction.token,
+        midtransRedirectUrl: transaction.redirect_url,
+      },
+    });
+
+    return NextResponse.json(
+      {
+        registration: updatedRegistration,
+        paymentUrl: transaction.redirect_url, // Kirim URL redirect
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Error creating activity registration:", error);
     return NextResponse.json(
@@ -119,4 +134,4 @@ export async function POST(request, { params }) {
       { status: 500 }
     );
   }
-} 
+}
