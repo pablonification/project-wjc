@@ -3,11 +3,15 @@ import { Navbar, Footer } from "../components";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import BannerAd from "../components/BannerAd";
 
 const ProductCard = ({ name, price, imageUrls, slug }) => {
   const displayUrl = imageUrls && imageUrls.length > 0 ? imageUrls[0] : null;
   return (
-    <Link href={`/merchandise/${slug}`} className="flex flex-col font-manrope group">
+    <Link
+      href={`/merchandise/${slug}`}
+      className="flex flex-col font-manrope group"
+    >
       <div className="w-full h-72 bg-[#D9D9D9] relative overflow-hidden">
         {displayUrl && (
           <Image
@@ -39,13 +43,12 @@ const ProductCardSkeleton = () => (
 );
 
 const MerchandiseListSkeleton = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
-        {[...Array(4)].map((_, i) => (
-            <ProductCardSkeleton key={i} />
-        ))}
-    </div>
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
+    {[...Array(4)].map((_, i) => (
+      <ProductCardSkeleton key={i} />
+    ))}
+  </div>
 );
-
 
 export default function Merchandise() {
   const [products, setProducts] = useState([]);
@@ -56,7 +59,7 @@ export default function Merchandise() {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const res = await fetch('/api/merchandise');
+        const res = await fetch("/api/merchandise");
         if (!res.ok) throw new Error("Gagal mengambil data produk");
         const data = await res.json();
         setProducts(data);
@@ -70,7 +73,7 @@ export default function Merchandise() {
   }, []);
 
   const handleShowMore = () => {
-    setVisibleCount(prevCount => prevCount + 8);
+    setVisibleCount((prevCount) => prevCount + 8);
   };
 
   return (
@@ -83,6 +86,7 @@ export default function Merchandise() {
           </h1>
         </div>
       </section>
+      <BannerAd page="merchandise" />
 
       <section className="bg-black flex-grow text-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-28 py-24">
@@ -99,7 +103,10 @@ export default function Merchandise() {
           )}
           {products.length > visibleCount && (
             <div className="text-center mt-12 flex justify-center">
-              <button onClick={handleShowMore} className="py-2 px-8 sm:px-24 md:px-36 lg:px-48 bg-[#403E3D] flex items-center gap-2 cursor-pointer font-manrope w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl justify-center">
+              <button
+                onClick={handleShowMore}
+                className="py-2 px-8 sm:px-24 md:px-36 lg:px-48 bg-[#403E3D] flex items-center gap-2 cursor-pointer font-manrope w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl justify-center"
+              >
                 <p className="text-white font-manrope text-lg">Show More</p>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

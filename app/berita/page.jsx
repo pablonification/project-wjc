@@ -3,6 +3,7 @@ import { Navbar, Footer } from "../components";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import BannerAd from "../components/BannerAd";
 
 // Skeleton loader for the news list
 function BeritaListSkeleton() {
@@ -65,13 +66,12 @@ export default function Berita() {
   }, []);
 
   const handleShowMore = () => {
-    setVisibleCount(prevCount => prevCount + 6);
+    setVisibleCount((prevCount) => prevCount + 6);
   };
 
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
       <Navbar />
-
       {/* Hero Section */}
       <section className="bg-[#1F1F1F]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-28 py-24">
@@ -80,7 +80,8 @@ export default function Berita() {
           </h1>
         </div>
       </section>
-
+      {/* Banner Ad after Hero */}
+      <BannerAd page="berita" />
       {/* Main Content */}
       <section className="bg-black flex-grow">
         <div className="container mx-auto px-4 sm:px-6 lg:px-28 mt-3 py-24">
@@ -110,7 +111,10 @@ export default function Berita() {
 
           {news.length > visibleCount && (
             <div className="text-center mt-20 flex justify-center">
-              <button onClick={handleShowMore} className="py-2 px-8 sm:px-24 md:px-36 lg:px-48 bg-[#403E3D] flex items-center gap-2 cursor-pointer font-manrope w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl justify-center">
+              <button
+                onClick={handleShowMore}
+                className="py-2 px-8 sm:px-24 md:px-36 lg:px-48 bg-[#403E3D] flex items-center gap-2 cursor-pointer font-manrope w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl justify-center"
+              >
                 <p className="text-white font-manrope text-lg">Show More</p>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

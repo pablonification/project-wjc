@@ -3,6 +3,7 @@ import { Navbar, Footer, Button } from "../components";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import BannerAd from "../components/BannerAd";
 
 // Skeleton loader for the activities list
 function KegiatanListSkeleton() {
@@ -191,7 +192,8 @@ export default function Kegiatan() {
           </h1>
         </div>
       </section>
-
+      {/* Banner Ad after Hero */}
+      <BannerAd page="kegiatan" />
       {/* Main Content */}
       <section className="bg-black flex-grow font-manrope">
         <div className="container mx-auto px-4 sm:px-6 lg:px-28 py-24">

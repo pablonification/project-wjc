@@ -43,6 +43,11 @@ const links = [
     href: "/dashboard/manajemen-dokumentasi",
     icon: Camera,
   },
+  {
+    name: "Banner Ads",
+    href: "/dashboard/banner-ads",
+    icon: Camera, // Assuming Camera icon for Banner Ads as it's a media management
+  },
 ];
 
 export default function Sidebar() {

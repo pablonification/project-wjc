@@ -278,3 +278,13 @@ model Order {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
+
+model Banner {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  page      String   // e.g., "kegiatan", "berita", "dokumentasi", "merchandise"
+  enabled   Boolean  @default(false)
+  imageUrl  String
+  targetUrl String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

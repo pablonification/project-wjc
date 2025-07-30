@@ -3,6 +3,7 @@ import { Navbar, Footer } from "../components";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, Suspense } from "react";
+import BannerAd from "../components/BannerAd";
 
 const DocLink = ({ href, children }) => (
   <a
@@ -25,28 +26,27 @@ const DocLink = ({ href, children }) => (
 );
 
 const DocLinkSkeleton = () => (
-    <div className="flex items-center justify-between py-4">
-        <div className="h-8 bg-gray-700 rounded w-3/4 animate-pulse"></div>
-        <div className="w-7 h-7 bg-gray-700 rounded-full animate-pulse"></div>
-    </div>
-)
-
-const DokumentasiSkeleton = () => (
-    <div>
-        <div>
-            <div className="h-12 bg-gray-700 rounded w-1/4 mb-6 animate-pulse"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-24">
-                <DocLinkSkeleton />
-                <DocLinkSkeleton />
-                <DocLinkSkeleton />
-                <DocLinkSkeleton />
-                <DocLinkSkeleton />
-                <DocLinkSkeleton />
-            </div>
-        </div>
-    </div>
+  <div className="flex items-center justify-between py-4">
+    <div className="h-8 bg-gray-700 rounded w-3/4 animate-pulse"></div>
+    <div className="w-7 h-7 bg-gray-700 rounded-full animate-pulse"></div>
+  </div>
 );
 
+const DokumentasiSkeleton = () => (
+  <div>
+    <div>
+      <div className="h-12 bg-gray-700 rounded w-1/4 mb-6 animate-pulse"></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-24">
+        <DocLinkSkeleton />
+        <DocLinkSkeleton />
+        <DocLinkSkeleton />
+        <DocLinkSkeleton />
+        <DocLinkSkeleton />
+        <DocLinkSkeleton />
+      </div>
+    </div>
+  </div>
+);
 
 export default function Dokumentasi() {
   const [docs, setDocs] = useState([]);
@@ -57,7 +57,7 @@ export default function Dokumentasi() {
       try {
         const res = await fetch("/api/dokumentasi");
         if (!res.ok) {
-          throw new Error('Gagal mengambil data');
+          throw new Error("Gagal mengambil data");
         }
         const data = await res.json();
         setDocs(data);
@@ -69,7 +69,7 @@ export default function Dokumentasi() {
     };
     // Simulate loading
     setTimeout(() => {
-        fetchDocs();
+      fetchDocs();
     }, 1500);
   }, []);
 
@@ -86,7 +86,6 @@ export default function Dokumentasi() {
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
       <Navbar />
-
       <section className="bg-[#1F1F1F]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-28 py-24">
           <h1 className="text-display font-manrope font-bold text-white translate-y-16">
@@ -94,7 +93,9 @@ export default function Dokumentasi() {
           </h1>
         </div>
       </section>
-
+      {/* Banner Ad after Hero */}
+      <BannerAd page="dokumentasi" />
+      {/* Main Content */}
       <section className="bg-black flex-grow">
         <div className="container mx-auto px-4 sm:px-6 lg:px-28 py-24">
           {loading ? (
