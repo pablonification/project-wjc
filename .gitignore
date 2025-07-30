@@ -10,6 +10,9 @@
 !.yarn/releases
 !.yarn/versions
 
+# ngrok
+ngrok.exe
+
 # testing
 /coverage
 
