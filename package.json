@@ -10,6 +10,7 @@
     "vercel-build": "npx prisma generate && next build"
   },
   "dependencies": {
+    "@datocms/cda-client": "^0.2.7",
     "@prisma/client": "^6.11.1",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.7.0",

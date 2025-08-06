@@ -85,7 +85,6 @@ export default function Dokumentasi() {
 
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
-      <Navbar />
       <section className="bg-[#1F1F1F]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-28 py-24">
           <h1 className="text-display font-manrope font-bold text-white translate-y-16">
