@@ -17,7 +17,6 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Format nomor telepon tidak valid.' }, { status: 400 });
     }
     const normalizedPhoneNumber = phoneNumberObj.format('E.164');
-
     // Cek nomor ada di db
     const user = await prisma.user.findUnique({
       where: { phoneNumber: normalizedPhoneNumber },
@@ -27,10 +26,8 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Pengguna tidak ditemukan.' }, { status: 404 });
     }
 
-    // Hash password baru
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Perbarui password di database
     await prisma.user.update({
       where: { id: user.id },
       data: { password: hashedPassword },
