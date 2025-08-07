@@ -1,9 +1,9 @@
 "use client";
-import { Navbar, Footer } from "../components";
+import { Navbar, Footer } from "../../components";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, Suspense } from "react";
-import BannerAd from "../components/BannerAd";
+import BannerAd from "../../components/BannerAd";
 
 const DocLink = ({ href, children }) => (
   <a

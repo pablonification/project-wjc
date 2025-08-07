@@ -1,8 +1,8 @@
 // app/home-sections/BeritaSection.jsx
 
 import Image from 'next/image';
-import { ArrowOutward, Placeholder } from '../../public/assets/image';
-import { HomeBeritaCard } from "../components";
+import { ArrowOutward, Placeholder } from '../../../public/assets/image';
+import { HomeBeritaCard } from "../../components";
 
 // Helper function untuk mengambil data berita terbaru dari API
 async function getLatestNews() {

@@ -1,6 +1,6 @@
 import Image from 'next/image';
-import { Hero, ArrowOutward } from '../../public/assets/image';
-import { Button } from '../components';
+import { Hero, ArrowOutward } from '../../../public/assets/image';
+import { Button } from '../../components';
 
 const HeroSection = ({ content }) => {
   return (

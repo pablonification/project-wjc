@@ -1,9 +1,9 @@
 "use client";
-import { Navbar, Footer } from "../components";
+import { Navbar, Footer } from "../../components";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import BannerAd from "../components/BannerAd";
+import BannerAd from "../../components/BannerAd";
 
 const ProductCard = ({ name, price, imageUrls, slug }) => {
   const displayUrl = imageUrls && imageUrls.length > 0 ? imageUrls[0] : null;

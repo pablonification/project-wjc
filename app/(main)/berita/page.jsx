@@ -1,9 +1,9 @@
 "use client";
-import { Navbar, Footer } from "../components";
+import { Navbar, Footer } from "../../components";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import BannerAd from "../components/BannerAd";
+import BannerAd from "../../components/BannerAd";
 
 // Skeleton loader for the news list
 function BeritaListSkeleton() {

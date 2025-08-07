@@ -1,6 +1,6 @@
-import { HomeKegiatanCard } from "../components";
+import { HomeKegiatanCard } from "../../components";
 import Image from 'next/image';
-import { ArrowOutward, Placeholder } from '../../public/assets/image';
+import { ArrowOutward, Placeholder } from '../../../public/assets/image';
 
 async function getLatestActivities() {
   try {

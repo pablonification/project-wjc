@@ -1,7 +1,7 @@
 "use client";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Navbar, Footer } from "../../components";
+import { Navbar, Footer } from "../../../components";
 import Image from "next/image";
 import Link from "next/link";
 
