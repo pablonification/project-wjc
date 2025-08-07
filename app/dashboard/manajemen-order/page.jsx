@@ -95,29 +95,48 @@ const OrdersDashboard = () => {
     }
   };
 
-  if (loading) return <p>Memuat data...</p>;
+  const statusOptions = ["PENDING", "PAID", "SHIPPING", "COMPLETED", "CANCELLED"];
+
+  if (loading) return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="w-8 h-8 rounded-full border-4 border-white border-t-transparent animate-spin"></div>
+      </div>
+    );
   if (error) return <p className="text-red-500">{error}</p>;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto bg-white p-6 rounded-xl shadow-md">
+    <div className="min-h-screen bg-[#141415] text-white p-8">
+      <div className="max-w-7xl p-4 rounded-xl shadow-md">
         <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
-          <h1 className="text-2xl font-bold">Manajemen Pesanan</h1>
+          <h1 className="text-h2">Manajemen Pesanan</h1>
           <div className="flex items-center gap-4">
-            <select
-              value={selectedMerch}
-              onChange={(e) => setSelectedMerch(e.target.value)}
-              className="border rounded px-3 py-2"
-            >
-              <option value="all">Semua Merchandise</option>
-              {merchandise.map(item => (
-                <option key={item.id} value={item.id}>{item.name}</option>
-              ))}
-            </select>
+            <div className="relative w-[260px]">
+              <select
+                value={selectedMerch}
+                onChange={(e) => setSelectedMerch(e.target.value)}
+                className="w-full bg-[#222225] text-white font-semibold rounded-lg px-5 py-2 appearance-none outline-none border border-[#65666B] focus:border-[#C4A254] transition"
+                style={{
+                  WebkitAppearance: "none",
+                  MozAppearance: "none",
+                  appearance: "none"
+                }}
+              >
+                <option value="all">Semua Merchandise</option>
+                {merchandise.map(item => (
+                  <option key={item.id} value={item.id}>{item.name}</option>
+                ))}
+              </select>
+              {/* Chevron icon kanan */}
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg width="18" height="18" fill="none" stroke="#B3B4B6" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 9l6 6 6-6" />
+                </svg>
+              </span>
+            </div>
             <button
               onClick={handleExport}
               disabled={filteredOrders.length === 0}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400"
+              className="px-5 py-2 bg-[#034e07] text-white rounded-md font-semibold hover:bg-[#509956] transition disabled:bg-[#65666B] disabled:text-[#bbb] disabled:cursor-not-allowed cursor-pointer"
             >
               Export ke XLSX
             </button>
@@ -125,48 +144,88 @@ const OrdersDashboard = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pemesan</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produk</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resi</th>
-                  <th className="px-4 py-2"></th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredOrders.length > 0 ? filteredOrders.map(order => {
-                    const edit = editState[order.id] || {};
-                    const statusOptions = ["PENDING", "PAID", "SHIPPING", "COMPLETED", "CANCELLED"];
-                    return (
-                        <tr key={order.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{new Date(order.createdAt).toLocaleString('id-ID')}</td>
-                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{order.user?.name}<br/><span className="text-xs text-gray-500">{order.user?.phoneNumber}</span></td>
-                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{order.merchandise?.name || <span className="text-red-500">-</span>}<br/><span className="text-xs text-gray-500">Qty: {order.quantity}</span></td>
-                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">Rp{new Intl.NumberFormat('id-ID').format(order.total)}</td>
-                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                            <select className="border rounded px-2 py-1" value={edit.status || order.status} onChange={e => handleEditChange(order.id, 'status', e.target.value)}>
-                              {statusOptions.map(opt => (<option key={opt} value={opt}>{opt}</option>))}
-                            </select>
-                          </td>
-                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                            {(edit.status || order.status) === 'SHIPPING' ? (
-                              <input type="text" className="border rounded px-2 py-1 w-32" placeholder="No. Resi" value={edit.resi !== undefined ? edit.resi : (order.resi || '')} onChange={e => handleEditChange(order.id, 'resi', e.target.value)} />
-                            ) : (order.resi || '-')}
-                          </td>
-                          <td className="px-4 py-2 whitespace-nowrap text-sm">
-                            <button className="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-xs" onClick={() => handleSave(order)} disabled={edit.saving}>{edit.saving ? '...' : 'Simpan'}</button>
-                          </td>
-                        </tr>
-                    );
-                }) : (
-                    <tr><td colSpan="7" className="text-center py-4">Tidak ada pesanan.</td></tr>
-                )}
-              </tbody>
-          </table>
+          <div className="min-w-[1000px]">
+            {/* Header: Tanggal, Pemesan, Produk, Total, Status, Resi, Aksi */}
+            <div className="grid grid-cols-7 text-[#B3B4B6] bg-[#1E1E20] rounded-sm py-2 px-3 mb-2 font-medium text-b1">
+              <p className="col-span-1">Tanggal</p>
+              <p className="col-span-1">Pemesan</p>
+              <p className="col-span-1">Produk</p>
+              <p className="col-span-1">Total</p>
+              <p className="col-span-1">Status</p>
+              <p className="col-span-1">Resi</p>
+              <p className="col-span-1">Aksi</p>
+            </div>
+            {/* Table Body */}
+            {filteredOrders.length > 0 ? (
+              <ul>
+                {filteredOrders.map(order => {
+                  const edit = editState[order.id] || {};
+                  return (
+                    <li key={order.id} className="grid grid-cols-7 py-3 px-3 items-center border-b border-[#222225] last:border-none hover:bg-[#222225] transition">
+                      {/* Tanggal */}
+                      <span className="col-span-1 text-white text-sm">
+                        {new Date(order.createdAt).toLocaleString('id-ID')}
+                      </span>
+                      {/* Pemesan */}
+                      <span className="col-span-1 text-white text-sm">
+                        <div className="font-medium">{order.user?.name}</div>
+                        <div className="text-xs text-[#B3B4B6]">{order.user?.phoneNumber}</div>
+                        <div className="text-xs text-[#B3B4B6]">{order.address ? `${order.address.alamatLengkap}, ${order.address.kota}, ${order.address.provinsi} ${order.address.kodePos}` : 'Ambil di Sekretariat'}</div>
+                      </span>
+                      {/* Produk */}
+                      <span className="col-span-1 text-white text-sm">
+                        <div>
+                          {order.merchandise?.name || <span className="text-red-500">-</span>}
+                        </div>
+                        <div className="text-xs text-[#B3B4B6]">Qty: {order.quantity}</div>
+                        <div className="text-xs text-[#B3B4B6]">{order.shippingMethod} {order.courierService && <>| Kurir: {order.courierService}</>}</div>
+                      </span>
+                      {/* Total */}
+                      <span className="col-span-1 text-white text-sm">
+                        Rp{new Intl.NumberFormat('id-ID').format(order.total)}
+                      </span>
+                      {/* Status */}
+                      <span className="col-span-1 text-white text-sm">
+                        <select
+                          className="border border-[#B3B4B6] bg-[#141415] text-white px-2 py-1 rounded-md text-xs focus:border-[#C4A254] outline-none"
+                          value={edit.status || order.status}
+                          onChange={e => handleEditChange(order.id, 'status', e.target.value)}
+                        >
+                          {statusOptions.map(opt => (<option key={opt} value={opt}>{opt}</option>))}
+                        </select>
+                      </span>
+                      {/* Resi */}
+                      <span className="col-span-1 text-white text-sm">
+                        {(edit.status || order.status) === 'SHIPPING' ? (
+                          <input
+                            type="text"
+                            className="border border-[#B3B4B6] bg-[#141415] text-white px-2 py-1 rounded-md w-24 text-xs outline-none"
+                            placeholder="No. Resi"
+                            value={edit.resi !== undefined ? edit.resi : (order.resi || '')}
+                            onChange={e => handleEditChange(order.id, 'resi', e.target.value)}
+                          />
+                        ) : (
+                          <span className="text-xs text-[#B3B4B6]">{order.resi || '-'}</span>
+                        )}
+                      </span>
+                      {/* Aksi */}
+                      <span className="col-span-1 flex gap-2">
+                        <button
+                          className="px-4 py-2 bg-[#65666B] text-white text-b2 rounded-md font-medium hover:bg-[#88898d] focus:outline-none cursor-pointer"
+                          onClick={() => handleSave(order)}
+                          disabled={edit.saving}
+                        >
+                          {edit.saving ? "..." : "Simpan"}
+                        </button>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <div className="text-white min-w-[1000px] py-8 text-center">Tidak ada pesanan.</div>
+            )}
+          </div>
         </div>
       </div>
     </div>

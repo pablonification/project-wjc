@@ -1,207 +1,638 @@
 "use client";
 import { useState, useEffect } from "react";
 import { uploadToCloudinary } from "@/lib/uploadImage";
-import Link from "next/link";
+import Image from 'next/image';
+import { Delete, Edit } from '../../../public/assets/image';
+
+const initialForm = {
+  title: "",
+  description: "",
+  dateStart: "",
+  dateEnd: "",
+  location: "",
+  status: "UPCOMING",
+  imageUrl: "",
+  coverFile: null,
+  coverUrl: "",
+  attachmentFiles: [],
+  attachmentUrls: [],
+  accommodationName: "",
+  accommodationPriceSharing: "",
+  accommodationPriceSingle: "",
+  registrationFee: "",
+  tshirtPriceS: "",
+  tshirtPriceM: "",
+  tshirtPriceL: "",
+  tshirtPriceXL: "",
+  tshirtPriceXXL: "",
+  tshirtPriceXXXL: "",
+};
 
 const KegiatanDashboard = () => {
-    const [activities, setActivities] = useState([]);
-    const [form, setForm] = useState({
-      title: "", description: "", dateStart: "", dateEnd: "", location: "", status: "UPCOMING", imageUrl: "", coverFile: null, attachmentFiles: [],
-      accommodationName: "", accommodationPriceSharing: "", accommodationPriceSingle: "", registrationFee: "",
-      tshirtPriceS: "", tshirtPriceM: "", tshirtPriceL: "", tshirtPriceXL: "", tshirtPriceXXL: "", tshirtPriceXXXL: "",
-    });
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [waKegiatan, setWaKegiatan] = useState("");
-    const [waLoading, setWaLoading] = useState(false);
-    const [waMsg, setWaMsg] = useState("");
-  
-    const fetchActivities = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch("/api/kegiatan");
-        if (!res.ok) throw new Error("Gagal mengambil data kegiatan");
-        const data = await res.json();
-        setActivities(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    useEffect(() => {
-      const fetchWa = async () => {
-        setWaLoading(true);
-        const res = await fetch("/api/admin/settings/wa-kegiatan");
-        const data = await res.json();
-        setWaKegiatan(data.number || "");
-        setWaLoading(false);
-      };
-      fetchWa();
-      fetchActivities();
-    }, []);
-  
-    const handleWaSubmit = async (e) => {
-      e.preventDefault();
+  const [activities, setActivities] = useState([]);
+  const [form, setForm] = useState(initialForm);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [waKegiatan, setWaKegiatan] = useState("");
+  const [waLoading, setWaLoading] = useState(false);
+  const [waMsg, setWaMsg] = useState("");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editSlug, setEditSlug] = useState(null);
+
+  // Cover image & attachments as preview urls
+  const [coverPreview, setCoverPreview] = useState([]);
+  const [attachmentsPreview, setAttachmentsPreview] = useState([]);
+
+  // Fetch activities & WA number
+  const fetchActivities = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/kegiatan");
+      if (!res.ok) throw new Error("Gagal mengambil data kegiatan");
+      const data = await res.json();
+      setActivities(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchWa = async () => {
       setWaLoading(true);
-      setWaMsg("");
-      const res = await fetch("/api/admin/settings/wa-kegiatan", {
+      const res = await fetch("/api/admin/settings/wa-kegiatan");
+      const data = await res.json();
+      setWaKegiatan(data.number || "");
+      setWaLoading(false);
+    };
+    fetchWa();
+    fetchActivities();
+  }, []);
+
+  // ----------- WA KONFIRMASI -----------
+  const handleWaSubmit = async (e) => {
+    e.preventDefault();
+    setWaLoading(true);
+    setWaMsg("");
+    const res = await fetch("/api/admin/settings/wa-kegiatan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ number: waKegiatan }),
+    });
+    const data = await res.json();
+    setWaLoading(false);
+    if (data.number) setWaMsg("Nomor WhatsApp berhasil disimpan!");
+    else setWaMsg(data.error || "Gagal menyimpan nomor WhatsApp");
+  };
+
+  // ----------- MODAL LOGIC -----------
+  const openAddModal = () => {
+    setForm({ ...initialForm });
+    setCoverPreview([]);
+    setAttachmentsPreview([]);
+    setShowAddModal(true);
+    setError(null);
+  };
+  const closeAddModal = () => {
+    setShowAddModal(false);
+    setForm({ ...initialForm });
+    setCoverPreview([]);
+    setAttachmentsPreview([]);
+    setError(null);
+  };
+
+  const openEditModal = async (slug) => {
+    setEditSlug(slug);
+    setShowEditModal(true);
+    setError(null);
+    setCoverPreview([]);
+    setAttachmentsPreview([]);
+    try {
+      const res = await fetch(`/api/kegiatan/${slug}`);
+      if (!res.ok) throw new Error("Gagal mengambil data kegiatan");
+      const data = await res.json();
+      setForm({
+        ...initialForm,
+        ...data,
+        dateStart: data.dateStart ? new Date(data.dateStart).toISOString().split('T')[0] : "",
+        dateEnd: data.dateEnd ? new Date(data.dateEnd).toISOString().split('T')[0] : "",
+        coverUrl: data.imageUrl || "",
+        attachmentUrls: data.attachmentUrls || [],
+        attachmentFiles: [],
+        coverFile: null,
+      });
+      setCoverPreview(data.imageUrl ? [data.imageUrl] : []);
+      setAttachmentsPreview(data.attachmentUrls || []);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setEditSlug(null);
+    setForm({ ...initialForm });
+    setCoverPreview([]);
+    setAttachmentsPreview([]);
+    setError(null);
+  };
+
+  // ----------- FORM LOGIC -----------
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  // Cover Preview Logic
+  const handleCoverFileChange = (e) => {
+    const file = e.target.files[0];
+    setForm({ ...form, coverFile: file });
+    if (file) {
+      setCoverPreview([URL.createObjectURL(file)]);
+    } else {
+      setCoverPreview([]);
+    }
+  };
+  // Remove cover preview
+  const removeCover = () => {
+    setForm({ ...form, coverFile: null, coverUrl: "" });
+    setCoverPreview([]);
+  };
+
+  // Attachment Preview Logic (add, not replace)
+  const handleAttachmentFilesChange = (e) => {
+    let newFiles = Array.from(e.target.files);
+    let totalFiles = form.attachmentFiles.length + newFiles.length;
+    if (totalFiles > 4) {
+      alert("Maksimal 4 gambar attachment.");
+      newFiles = newFiles.slice(0, 4 - form.attachmentFiles.length);
+    }
+    const updatedFiles = [...form.attachmentFiles, ...newFiles];
+    setForm({ ...form, attachmentFiles: updatedFiles });
+    setAttachmentsPreview([
+      ...attachmentsPreview,
+      ...newFiles.map((file) => URL.createObjectURL(file)),
+    ]);
+  };
+  // Remove attachment preview
+  const removeAttachment = (idx) => {
+    const newFiles = form.attachmentFiles.filter((_, i) => i !== idx);
+    const newPreviews = attachmentsPreview.filter((_, i) => i !== idx);
+    setForm({ ...form, attachmentFiles: newFiles });
+    setAttachmentsPreview(newPreviews);
+  };
+
+  // ----------- SUBMIT LOGIC -----------
+  const handleAddSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    try {
+      let coverImageUrl = form.coverUrl;
+      if (form.coverFile) {
+        coverImageUrl = await uploadToCloudinary(form.coverFile);
+      }
+      let attachmentImageUrls = form.attachmentUrls || [];
+      if (form.attachmentFiles && form.attachmentFiles.length) {
+        attachmentImageUrls = [
+          ...(form.attachmentUrls || []),
+          ...(
+            await Promise.all(
+              form.attachmentFiles.map((file) => uploadToCloudinary(file))
+            )
+          ),
+        ];
+      }
+      const payload = { ...form, imageUrl: coverImageUrl, attachmentUrls: attachmentImageUrls };
+      delete payload.coverFile;
+      delete payload.attachmentFiles;
+      delete payload.coverUrl;
+      const res = await fetch("/api/kegiatan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ number: waKegiatan }),
+        body: JSON.stringify(payload),
       });
-      const data = await res.json();
-      setWaLoading(false);
-      if (data.number) setWaMsg("Nomor WhatsApp berhasil disimpan!");
-      else setWaMsg(data.error || "Gagal menyimpan nomor WhatsApp");
-    };
-  
-    const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-    const handleCoverFileChange = (e) => setForm({ ...form, coverFile: e.target.files[0] });
-    const handleAttachmentFilesChange = (e) => {
-      if (e.target.files.length > 4) {
-        alert("Anda hanya dapat mengunggah maksimal 4 gambar attachment.");
-        e.target.value = "";
-        return;
-      }
-      setForm({ ...form, attachmentFiles: Array.from(e.target.files) });
-    };
-  
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-      setError(null);
-      try {
-        let coverImageUrl = "";
-        if (form.coverFile) {
-          coverImageUrl = await uploadToCloudinary(form.coverFile);
-        }
-  
-        let attachmentImageUrls = [];
-        if (form.attachmentFiles.length) {
-          attachmentImageUrls = await Promise.all(
-            form.attachmentFiles.map((file) => uploadToCloudinary(file))
-          );
-        }
-  
-        const payload = { ...form, imageUrl: coverImageUrl, attachmentUrls: attachmentImageUrls };
-        delete payload.coverFile;
-        delete payload.attachmentFiles;
-  
-        const res = await fetch("/api/kegiatan", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) {
+      if (!res.ok) {
+        let errMsg = "Gagal menambah kegiatan";
+        try {
           const err = await res.json();
-          throw new Error(err.message || "Gagal menambah kegiatan");
+          errMsg = err.message || errMsg;
+        } catch (e) {}
+        throw new Error(errMsg);
+      }
+      await fetchActivities();
+      closeAddModal();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    try {
+      let coverImageUrl = form.coverUrl;
+      if (form.coverFile) {
+        coverImageUrl = await uploadToCloudinary(form.coverFile);
+      }
+      let attachmentImageUrls = form.attachmentUrls || [];
+      if (form.attachmentFiles && form.attachmentFiles.length) {
+        attachmentImageUrls = [
+          ...(form.attachmentUrls || []),
+          ...(
+            await Promise.all(
+              form.attachmentFiles.map((file) => uploadToCloudinary(file))
+            )
+          ),
+        ];
+      }
+      const payload = { ...form, imageUrl: coverImageUrl, attachmentUrls: attachmentImageUrls };
+      delete payload.coverFile;
+      delete payload.attachmentFiles;
+      delete payload.coverUrl;
+      const res = await fetch(`/api/kegiatan/${editSlug}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        let errMsg = "Gagal mengupdate kegiatan";
+        try {
+          const err = await res.json();
+          errMsg = err.message || errMsg;
+        } catch (e) {}
+        throw new Error(errMsg);
+      }
+      await fetchActivities();
+      closeEditModal();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleDelete = async (slug) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus kegiatan ini?")) {
+      try {
+        const res = await fetch(`/api/kegiatan/${slug}`, { method: "DELETE" });
+        if (!res.ok) {
+          let errMsg = "Gagal menghapus kegiatan";
+          try {
+            const err = await res.json();
+            errMsg = err.message || errMsg;
+          } catch (e) {}
+          throw new Error(errMsg);
         }
         await fetchActivities();
-        setForm({
-          title: "", description: "", dateStart: "", dateEnd: "", location: "", status: "UPCOMING", imageUrl: "", coverFile: null, attachmentFiles: [],
-          accommodationName: "", accommodationPriceSharing: "", accommodationPriceSingle: "", registrationFee: "",
-          tshirtPriceS: "", tshirtPriceM: "", tshirtPriceL: "", tshirtPriceXL: "", tshirtPriceXXL: "", tshirtPriceXXXL: "",
-        });
       } catch (err) {
         setError(err.message);
       }
-    };
-  
-    const handleDelete = async (slug) => {
-      if (window.confirm("Apakah Anda yakin ingin menghapus kegiatan ini?")) {
-        try {
-          const res = await fetch(`/api/kegiatan/${slug}`, { method: "DELETE" });
-          if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.message || "Gagal menghapus kegiatan");
-          }
-          await fetchActivities();
-        } catch (err) {
-          setError(err.message);
-        }
-      }
-    };
+    }
+  };
 
-    return (
-      <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-        <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-md">
-          <h1 className="text-2xl font-bold mb-6">Kelola Kegiatan</h1>
-  
-          <form onSubmit={handleWaSubmit} className="mb-8 flex items-end gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nomor WhatsApp Konfirmasi Kegiatan</label>
-              <input type="text" value={waKegiatan} onChange={e => setWaKegiatan(e.target.value)} className="border px-3 py-2 rounded w-64" placeholder="628xxxxxxxxxx" required disabled={waLoading} />
-            </div>
-            <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700" disabled={waLoading}>{waLoading ? "..." : "Simpan"}</button>
-            {waMsg && <span className="text-sm ml-2">{waMsg}</span>}
-          </form>
-  
-          <form onSubmit={handleSubmit} className="space-y-4 mb-8">
-            <input name="title" value={form.title} onChange={handleChange} placeholder="Judul" className="w-full border px-3 py-2 rounded" required />
-            <textarea name="description" value={form.description} onChange={handleChange} placeholder="Deskripsi" rows={4} className="w-full border px-3 py-2 rounded" required />
-            <div className="flex gap-4">
-              <input type="date" name="dateStart" value={form.dateStart} onChange={handleChange} className="border px-3 py-2 rounded w-full" required />
-              <input type="date" name="dateEnd" value={form.dateEnd} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
-            </div>
-            <input name="location" value={form.location} onChange={handleChange} placeholder="Lokasi" className="w-full border px-3 py-2 rounded" required />
-            <input name="registrationFee" value={form.registrationFee} onChange={handleChange} placeholder="Biaya Pendaftaran (Rp)" type="number" className="w-full border px-3 py-2 rounded" />
-            <select name="status" value={form.status} onChange={handleChange} className="w-full border px-3 py-2 rounded">
-              <option value="UPCOMING">Mendatang</option>
-              <option value="ONGOING">Berlangsung</option>
-              <option value="COMPLETED">Selesai</option>
-            </select>
-            <label className="block text-sm font-medium text-gray-700">Gambar Cover</label>
-            <input type="file" onChange={handleCoverFileChange} className="w-full border px-3 py-2 rounded" accept="image/*" />
-            <label className="block text-sm font-medium text-gray-700">Gambar Attachment (Maks. 4)</label>
-            <input type="file" multiple onChange={handleAttachmentFilesChange} className="w-full border px-3 py-2 rounded" accept="image/*" />
-            
-            <div className="border-t pt-4">
-              <h3 className="text-lg font-semibold mb-4">Penginapan (Opsional)</h3>
-              <input name="accommodationName" value={form.accommodationName} onChange={handleChange} placeholder="Nama Tempat Penginapan" className="w-full border px-3 py-2 rounded mb-4" />
-              <div className="grid grid-cols-2 gap-4">
-                <input name="accommodationPriceSharing" value={form.accommodationPriceSharing} onChange={handleChange} placeholder="Harga Kamar Sharing" type="number" className="w-full border px-3 py-2 rounded" />
-                <input name="accommodationPriceSingle" value={form.accommodationPriceSingle} onChange={handleChange} placeholder="Harga Kamar Single" type="number" className="w-full border px-3 py-2 rounded" />
-              </div>
-            </div>
-  
-            <div className="border-t pt-4">
-              <h3 className="text-lg font-semibold mb-4">Harga Kaos/Jersey per Ukuran</h3>
-              <div className="grid grid-cols-3 gap-4">
-                  {['S', 'M', 'L', 'XL', 'XXL', 'XXXL'].map(size => (
-                      <input key={size} name={`tshirtPrice${size}`} value={form[`tshirtPrice${size}`]} onChange={handleChange} placeholder={`Harga Size ${size}`} type="number" className="w-full border px-3 py-2 rounded" />
-                  ))}
-              </div>
-            </div>
-            
-            <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Tambah Kegiatan</button>
-          </form>
-  
-          {error && <p className="text-red-500 mb-4">{error}</p>}
-  
-          <div className="mt-8">
-            <h2 className="text-xl font-bold mb-4">Daftar Kegiatan</h2>
-            {loading ? (<p>Memuat data...</p>) : activities.length > 0 ? (
-              <div className="space-y-4">
-                {activities.map((item) => (
-                  <div key={item.id} className="border p-4 rounded-lg flex justify-between items-center">
-                    <div>
-                      <h3 className="font-semibold text-lg">{item.title}</h3>
-                      <p className="text-sm text-gray-600">{item.location}</p>
-                      <p className="text-xs text-gray-400">{new Date(item.dateStart).toLocaleDateString()}</p>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Link href={`/dashboard/manajemen-kegiatan/edit/${item.slug}`} className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Edit</Link>
-                      <button onClick={() => handleDelete(item.slug)} className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : ( <p>Tidak ada kegiatan.</p> )}
+  // ----------- UI HELPERS -----------
+  const formatDate = (date) => {
+    if (!date) return "-";
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  // ----------- MODAL COMPONENT -----------
+  const renderModal = (type = "add") => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Blur Background */}
+      <div className="absolute inset-0 bg-[#141415]/70 backdrop-blur-sm"></div>
+      {/* Modal */}
+      <div className="relative z-10 w-[95vw] max-w-2xl bg-[#141415] rounded-xl p-8 shadow-2xl text-white overflow-y-auto max-h-[95vh]">
+        <button
+          className="absolute top-5 right-5 text-3xl text-white hover:text-gray-300 transition"
+          onClick={type === "add" ? closeAddModal : closeEditModal}
+          aria-label="Close"
+        >
+          &times;
+        </button>
+        <h1 className="text-2xl font-semibold mb-6">
+          {type === "add" ? "Buat Kegiatan Baru" : "Edit Kegiatan"}
+        </h1>
+
+        <form
+          onSubmit={type === "add" ? handleAddSubmit : handleEditSubmit}
+          className="space-y-6"
+        >
+          {/* Bagian Kegiatan */}
+          <div>
+            <label className="block mb-2 font-medium">Kegiatan</label>
+            <input
+              name="title"
+              value={form.title}
+              onChange={handleChange}
+              placeholder="Masukkan judul kegiatan"
+              className="w-full border border-[#B3B4B6] bg-transparent px-3 py-2 rounded-md text-white placeholder-[#B3B4B6] outline-none"
+              required
+            />
           </div>
+          <div>
+            <label className="block mb-2 font-medium">Deskripsi</label>
+            <textarea
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              placeholder="Masukkan deskripsi kegiatan"
+              rows={4}
+              className="w-full border border-[#B3B4B6] bg-transparent px-3 py-2 rounded-md text-white placeholder-[#B3B4B6] outline-none"
+              required
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block mb-2 font-medium">Tanggal Mulai</label>
+              <input
+                type="date"
+                name="dateStart"
+                value={form.dateStart}
+                onChange={handleChange}
+                className="w-full border border-[#B3B4B6] bg-transparent px-3 py-2 rounded-md text-white placeholder-[#B3B4B6] outline-none"
+                required
+              />
+            </div>
+            <div>
+              <label className="block mb-2 font-medium">Tanggal Selesai</label>
+              <input
+                type="date"
+                name="dateEnd"
+                value={form.dateEnd}
+                onChange={handleChange}
+                className="w-full border border-[#B3B4B6] bg-transparent px-3 py-2 rounded-md text-white placeholder-[#B3B4B6] outline-none"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block mb-2 font-medium">Lokasi</label>
+            <input
+              name="location"
+              value={form.location}
+              onChange={handleChange}
+              placeholder="Masukkan lokasi kegiatan"
+              className="w-full border border-[#B3B4B6] bg-transparent px-3 py-2 rounded-md text-white placeholder-[#B3B4B6] outline-none"
+              required
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block mb-2 font-medium">Biaya Pendaftaran</label>
+              <input
+                name="registrationFee"
+                value={form.registrationFee}
+                onChange={handleChange}
+                placeholder="Rp"
+                type="number"
+                className="w-full border border-[#B3B4B6] bg-transparent px-3 py-2 rounded-md text-white placeholder-[#B3B4B6] outline-none"
+              />
+            </div>
+            <div>
+              <label className="block mb-2 font-medium">Status Pendaftaran</label>
+              <select
+                name="status"
+                value={form.status}
+                onChange={handleChange}
+                className="w-full border border-[#B3B4B6] bg-transparent px-3 py-2 rounded-md text-white"
+              >
+                <option value="UPCOMING" className="text-black">Mendatang</option>
+                <option value="ONGOING" className="text-black">Berlangsung</option>
+                <option value="COMPLETED" className="text-black">Selesai</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Cover Image */}
+          <div>
+            <label className="block mb-2 font-medium">Gambar Cover</label>
+            <div className="flex gap-2 mb-2">
+              {coverPreview && coverPreview.length > 0 ? (
+                coverPreview.map((url, idx) => (
+                  <div key={idx} className="w-[80px] h-[80px] bg-white rounded-md flex items-center justify-center relative">
+                    <img src={url} alt="Cover" className="w-full h-full object-cover rounded-md" />
+                    <button type="button" onClick={removeCover}
+                      className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 text-xs text-white hover:bg-red-600 flex items-center justify-center">
+                      <Image src={Delete} alt="Delete" width={18} height={18}/>
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <div className="w-[80px] h-[80px] bg-white rounded-md flex items-center justify-center"></div>
+              )}
+            </div>
+            <label className="flex items-center justify-center border border-dashed border-[#B3B4B6] rounded-md py-4 cursor-pointer mb-2 transition hover:border-white">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleCoverFileChange}
+              />
+              <span className="flex items-center gap-1 text-[#B3B4B6]">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#B3B4B6">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M4 16V18a2 2 0 002 2h12a2 2 0 002-2v-2M12 12V4m0 0l-4 4m4-4l4 4" />
+                </svg>
+                <span>Upload File Gambar</span>
+              </span>
+            </label>
+          </div>
+
+          {/* Attachments */}
+          <div>
+            <label className="block mb-2 font-medium">Gambar Attachment (Maks. 4)</label>
+            <div className="flex gap-2 mb-2">
+              {attachmentsPreview && attachmentsPreview.length > 0
+                ? attachmentsPreview.map((url, idx) => (
+                    <div key={idx} className="w-[70px] h-[70px] bg-white rounded-md flex items-center justify-center relative">
+                      <img src={url} alt={`Attachment ${idx + 1}`} className="w-full h-full object-cover rounded-md" />
+                      <button type="button" onClick={() => removeAttachment(idx)}
+                        className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 text-xs text-white hover:bg-red-600 flex items-center justify-center">
+                        <Image src={Delete} alt="Delete" width={18} height={18}/>
+                      </button>
+                    </div>
+                  ))
+                : Array.from({ length: 4 }).map((_, idx) => (
+                    <div key={idx} className="w-[70px] h-[70px] bg-white rounded-md flex items-center justify-center"></div>
+                  ))
+              }
+            </div>
+            <label className="flex items-center justify-center border border-dashed border-[#B3B4B6] rounded-md py-4 cursor-pointer mb-2 transition hover:border-white">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleAttachmentFilesChange}
+                disabled={attachmentsPreview.length >= 4}
+              />
+              <span className="flex items-center gap-1 text-[#B3B4B6]">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#B3B4B6">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M4 16V18a2 2 0 002 2h12a2 2 0 002-2v-2M12 12V4m0 0l-4 4m4-4l4 4" />
+                </svg>
+                <span>Upload File Gambar</span>
+              </span>
+            </label>
+          </div>
+
+          {/* Penginapan (Opsional) */}
+          <div>
+            <label className="block mb-2 font-medium">Penginapan (Opsional)</label>
+            <input
+              name="accommodationName"
+              value={form.accommodationName}
+              onChange={handleChange}
+              placeholder="Masukkan nama tempat penginapan"
+              className="w-full border border-[#B3B4B6] bg-transparent px-3 py-2 rounded-md text-white placeholder-[#B3B4B6] outline-none mb-3"
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <input
+                name="accommodationPriceSingle"
+                value={form.accommodationPriceSingle}
+                onChange={handleChange}
+                placeholder="Harga Kamar Single"
+                type="number"
+                className="w-full border border-[#B3B4B6] bg-transparent px-3 py-2 rounded-md text-white placeholder-[#B3B4B6] outline-none"
+              />
+              <input
+                name="accommodationPriceSharing"
+                value={form.accommodationPriceSharing}
+                onChange={handleChange}
+                placeholder="Harga Kamar Sharing"
+                type="number"
+                className="w-full border border-[#B3B4B6] bg-transparent px-3 py-2 rounded-md text-white placeholder-[#B3B4B6] outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Harga Kaos/Jersey */}
+          <div>
+            <label className="block mb-2 font-medium">Harga Kaos/Jersey per Ukuran</label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {["S", "M", "L", "XL", "XXL", "XXXL"].map((size) => (
+                <input
+                  key={size}
+                  name={`tshirtPrice${size}`}
+                  value={form[`tshirtPrice${size}`]}
+                  onChange={handleChange}
+                  placeholder={`Rp`}
+                  type="number"
+                  className="w-full border border-[#B3B4B6] bg-transparent px-3 py-2 rounded-md text-white placeholder-[#B3B4B6] outline-none"
+                />
+              ))}
+            </div>
+          </div>
+
+          {error && <p className="text-red-500 mb-2">{error}</p>}
+
+          <button
+            type="submit"
+            className="w-full mt-6 py-3 bg-[#E53935] text-white rounded font-semibold text-base flex items-center justify-center gap-2 hover:bg-[#c62828] transition cursor-pointer"
+          >
+            {type === "add" ? "Buat Kegiatan" : "Simpan Perubahan"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+
+  // ----------- MAIN DASHBOARD UI -----------
+  return (
+    <div className="min-h-screen bg-[#141415] p-8">
+      <div className="max-w-5xl p-4 rounded-xl shadow-md bg-[#141415]">
+        {/* Judul & WA Konfirmasi */}
+        <h1 className="text-h2 text-white mb-6">
+          Pengelolaan Kegiatan
+        </h1>
+        <form onSubmit={handleWaSubmit} className="mb-8 flex items-end gap-4">
+          <div>
+            <label className="block text-b2 text-[#B3B4B6] mb-2">
+              Nomor WA Konfirmasi Merchandise
+            </label>
+            <input
+              type="text"
+              value={waKegiatan}
+              onChange={e => setWaKegiatan(e.target.value)}
+              className="border border-[#B3B4B6] bg-[#141415] text-white px-4 py-2 rounded-md w-64 placeholder-[#B3B4B6] outline-none"
+              placeholder="+628xxxxxxxxxx"
+              required
+              disabled={waLoading}
+            />
+          </div>
+          <button
+            type="submit"
+            className="px-5 py-2 bg-[#65666B] text-white rounded-md hover:bg-[#88898d] transition"
+            disabled={waLoading}
+          >
+            {waLoading ? "..." : "Simpan"}
+          </button>
+          {waMsg && <span className="text-sm ml-2 text-white">{waMsg}</span>}
+        </form>
+        {/* Button Tambah Kegiatan Baru */}
+        <button
+          onClick={openAddModal}
+          className="flex items-center gap-2 px-5 py-2 bg-[#222225] text-[#B3B4B6] rounded-md mb-6 shadow hover:bg-[#2d2d30] transition"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#B3B4B6">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/>
+          </svg>
+          Tambah Kegiatan Baru
+        </button>
+        {/* Table Kegiatan */}
+        <div className="overflow-x-auto min-w-[1000px] bg-[#141415]">
+          <h2 className="block text-b2 text-[#B3B4B6] mb-2">Daftar Kegiatan</h2>
+          {/* Table Header */}
+          <div className="min-w-[1000px] grid grid-cols-6 text-[#B3B4B6] bg-[#1E1E20] rounded-sm py-2 px-3 mb-2 font-medium text-b1">
+            <p className="col-span-2">Kegiatan</p>
+            <p className="col-span-2">Lokasi</p>
+            <p className="col-span-1">Tanggal</p>
+            <p className="col-span-1 text-right">Aksi</p>
+          </div>
+          {/* Table Body */}
+          {loading ? (
+            <p className="text-white">Memuat data...</p>
+          ) : activities.length > 0 ? (
+            <ul className="min-w[1000px]">
+              {activities.map((item) => (
+                <li key={item.id} className="grid grid-cols-6 py-3 px-3 items-center border-b border-[#222225] last:border-none">
+                  {/* Kegiatan */}
+                  <span className="col-span-2 text-white">
+                    <div className="font-medium">{item.title}</div>
+                  </span>
+                  {/* Lokasi */}
+                  <span className="col-span-2 text-white">{item.location}</span>
+                  {/* Tanggal */}
+                  <span className="col-span-1 text-white">{formatDate(item.dateStart)}</span>
+                  {/* Aksi */}
+                  <span className="col-span-1 flex justify-end gap-2">
+                    <button
+                      onClick={() => openEditModal(item.slug)}
+                      className="flex items-center gap-1 px-3 py-2 bg-[#C4A254] text-white text-b2 rounded-sm font-medium hover:bg-[#b7964b] focus:outline-none"
+                    >
+                      <Image src={Edit} alt='icon' width={20} height={20} />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item.slug)}
+                      className="flex items-center gap-1 px-3 py-2 bg-[#E53935] text-white text-b2 rounded-sm font-medium hover:bg-[#c62828] focus:outline-none"
+                    >
+                      <Image src={Delete} alt='icon' width={20} height={20} />
+                      Hapus
+                    </button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-white min-w-[1000px]">Tidak ada kegiatan.</p>
+          )}
         </div>
       </div>
-    );
+      {showAddModal && renderModal("add")}
+      {showEditModal && renderModal("edit")}
+    </div>
+  );
 };
-  
+
 export default KegiatanDashboard;

@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 
 export async function GET(request, { params }) {
   try {
-    const { slug } = params;
+    const { slug } = await params;
     if (!slug)
       return NextResponse.json({ message: "Slug required" }, { status: 400 });
     const berita = await prisma.berita.findUnique({ where: { slug } });

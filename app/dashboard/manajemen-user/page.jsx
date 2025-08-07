@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { Delete, Edit } from '../../../public/assets/image';
 
 const UserManagementPage = () => {
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -44,41 +47,96 @@ const UserManagementPage = () => {
     }
   };
 
+  // Filter users by search
+  const filteredUsers = users.filter(user =>
+    user.name?.toLowerCase().includes(search.toLowerCase()) ||
+    user.phoneNumber?.toLowerCase().includes(search.toLowerCase()) ||
+    user.role?.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-4">Manajemen User</h1>
-      <p className="mb-6 text-gray-600">Total Pengguna Terdaftar: {users.length}</p>
-      
-      {isLoading && <p>Memuat data...</p>}
-      {error && <p className="text-red-500">{error}</p>}
-      
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nomor Telepon</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {users.map((user) => (
-              <tr key={user.id}>
-                <td className="px-6 py-4 whitespace-nowrap">{user.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{user.phoneNumber}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.role === 'ADMIN' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                    {user.role}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <button onClick={() => handleDeleteUser(user.id)} className="text-red-600 hover:text-red-900">Hapus</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="min-h-screen bg-[#141415] p-8">
+      <div className="max-w-4xl p-4 rounded-xl shadow-md">
+        <h1 className="text-h2 text-white mb-2">
+          Manajemen Pengguna
+        </h1>
+        <p className="mb-6 text-[#B3B4B6] text-b1">
+          Total pengguna terdaftar: {users.length}
+        </p>
+
+        {/* Search Input */}
+        <div className="mb-6 flex items-center">
+          <div className="relative w-full max-w-sm">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#65666B]">
+              <svg width="20" height="20" fill="none" stroke="currentColor">
+                <circle cx="9" cy="9" r="7" strokeWidth="2"/>
+                <line x1="15" y1="15" x2="19" y2="19" strokeWidth="2"/>
+              </svg>
+            </span>
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Cari pengguna..."
+              className="flex-grow px-10 py-2 text-white border border-[#65666B] rounded-sm"
+            />
+          </div>
+        </div>
+
+        {/* Error and Loading */}
+        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+        {isLoading ? (
+          <p className="text-white">Memuat data...</p>
+        ) : (
+          <div className="overflow-x-auto">
+            {/* Table header */}
+            <div className="min-w-[600px] grid grid-cols-7 text-[#B3B4B6] bg-[#1E1E20] rounded-sm py-3 px-3 mb-2 text-b1">
+              <p className="col-span-2">Nama</p>
+              <p className="col-span-2">Nomor Telepon</p>
+              <p className="col-span-2">Role</p>
+              <p className="col-span-1">Aksi</p>
+            </div>
+            {/* Table body */}
+            {filteredUsers.length > 0 ? (
+              <ul className="min-w-[600px]">
+                {filteredUsers.map((user) => (
+                  <li key={user.id} className="grid grid-cols-7 py-3 px-3 items-center border-b border-[#222225] last:border-none">
+                    <span className="col-span-2 text-white">{user.name}</span>
+                    <span className="col-span-2 text-white">{user.phoneNumber}</span>
+                    <span className="col-span-2 flex">
+                      <span
+                        className={`inline-block text-center text-xs font-semibold rounded-sm ${
+                          user.role === 'ADMIN'
+                            ? 'bg-red-900 text-red-300'
+                            : 'bg-green-900 text-green-300'
+                        }`}
+                        style={{
+                          width: '90px',
+                          minWidth: '90px',
+                          maxWidth: '90px',
+                          padding: '6px 0',
+                        }}
+                      >
+                        {user.role === 'ADMIN' ? 'Admin' : 'Member'}
+                      </span>
+                    </span>
+                    <span className="col-span-1 flex">
+                      <button
+                        onClick={() => handleDeleteUser(user.id)}
+                        className="flex flex-row gap-2 px-3 py-2 cursor-pointer bg-red-500 text-white text-b2 rounded-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                      >
+                        <Image src={Delete} alt='icon' width={20} height={20} />
+                        <span>Hapus</span>
+                      </button>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-white min-w-[600px]">Tidak ada pengguna ditemukan.</p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

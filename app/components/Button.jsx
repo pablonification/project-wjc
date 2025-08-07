@@ -2,7 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const Button = ({ label, href, img, onClick, type = 'button', disabled, isLoading }) => {
+const Button = ({ label, href, imgleft, img, onClick, type = 'button', disabled, isLoading }) => {
   const buttonContent = (
     <button
       type={type}
@@ -13,6 +13,9 @@ const Button = ({ label, href, img, onClick, type = 'button', disabled, isLoadin
          shadow-sm text-white font-semibold
       `} 
     >
+      {imgleft && (
+        <Image src={imgleft} alt={`${label} icon`} width={20} height={20} />
+      )}
       <p className="text-white text-b1">
         {isLoading ? 'Memproses...' : label}
       </p>

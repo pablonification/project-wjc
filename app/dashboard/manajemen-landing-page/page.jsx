@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '../../components';
 import Image from 'next/image';
 import { upload } from "../../../public/assets/image";
 
 const ManajemenLandingPage = () => {
-  // State untuk hero section
+  // State hero section
   const [heroTitle, setHeroTitle] = useState('');
   const [heroDescription, setHeroDescription] = useState('');
   const [heroButton, setHeroButton] = useState('');
@@ -16,7 +16,7 @@ const ManajemenLandingPage = () => {
   const [heroImagePreview, setHeroImagePreview] = useState('');
   const [showHeroImageModal, setShowHeroImageModal] = useState(false);
 
-  // State untuk tentang section
+  // State tentang section
   const [tentangTitle, setTentangTitle] = useState('');
   const [tentangDescription, setTentangDescription] = useState('');
   const [tentangButton, setTentangButton] = useState('');
@@ -32,6 +32,10 @@ const ManajemenLandingPage = () => {
   const [error, setError] = useState(null);
   const [heroSuccess, setHeroSuccess] = useState(null);
   const [tentangSuccess, setTentangSuccess] = useState(null);
+
+  // Ref untuk reset file input
+  const heroImageInputRef = useRef(null);
+  const tentangImageInputRef = useRef(null);
 
   // Fetch data saat halaman dimuat
   useEffect(() => {
@@ -68,6 +72,20 @@ const ManajemenLandingPage = () => {
     fetchLandingPageContent();
   }, []);
 
+  // Auto-hide success after 2.5s
+  useEffect(() => {
+    if (heroSuccess) {
+      const timer = setTimeout(() => setHeroSuccess(null), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [heroSuccess]);
+  useEffect(() => {
+    if (tentangSuccess) {
+      const timer = setTimeout(() => setTentangSuccess(null), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [tentangSuccess]);
+
   // Fungsi upload ke Cloudinary
   const handleImageUpload = async (file) => {
     const formData = new FormData();
@@ -97,7 +115,7 @@ const ManajemenLandingPage = () => {
     });
   };
 
-  // 🎯 FUNGSI BARU: Hapus gambar di Cloudinary dan database
+  // Hapus gambar di Cloudinary dan database
   const handleDeleteImage = async (section, publicId) => {
     if (!publicId) return;
     
@@ -135,15 +153,21 @@ const ManajemenLandingPage = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
-      // Update state lokal
+      // Update state & RESET FILE INPUT DOM
       if (section === 'hero') {
         setHeroImageUrl('');
         setHeroImagePublicId('');
+        setHeroImageFile(null);
+        setHeroImagePreview('');
         setHeroSuccess('Gambar hero berhasil dihapus!');
+        if (heroImageInputRef.current) heroImageInputRef.current.value = "";
       } else {
         setTentangImageUrl('');
         setTentangImagePublicId('');
+        setTentangImageFile(null);
+        setTentangImagePreview('');
         setTentangSuccess('Gambar tentang berhasil dihapus!');
+        if (tentangImageInputRef.current) tentangImageInputRef.current.value = "";
       }
 
       // Trigger refresh pada landing page components
@@ -156,7 +180,6 @@ const ManajemenLandingPage = () => {
             data: data.data
           }
         }));
-        console.log(`✅ Dispatched landingPageUpdated event for ${section} image deletion`);
       }
 
     } catch (error) {
@@ -219,7 +242,8 @@ const ManajemenLandingPage = () => {
       setHeroSuccess('Hero Section berhasil diperbarui!');
       setHeroImageFile(null);
       setHeroImagePreview('');
-      
+      if (heroImageInputRef.current) heroImageInputRef.current.value = "";
+
       // Trigger event untuk refresh landing page components
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('landingPageUpdated', {
@@ -229,7 +253,6 @@ const ManajemenLandingPage = () => {
             data: data.data
           }
         }));
-        console.log('✅ Dispatched landingPageUpdated event for hero section');
       }
       
     } catch (err) {
@@ -288,7 +311,8 @@ const ManajemenLandingPage = () => {
       setTentangSuccess('Tentang Section berhasil diperbarui!');
       setTentangImageFile(null);
       setTentangImagePreview('');
-      
+      if (tentangImageInputRef.current) tentangImageInputRef.current.value = "";
+
       // Trigger event untuk refresh landing page components
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('landingPageUpdated', {
@@ -298,7 +322,6 @@ const ManajemenLandingPage = () => {
             data: data.data
           }
         }));
-        console.log('✅ Dispatched landingPageUpdated event for tentang section');
       }
       
     } catch (err) {
@@ -310,30 +333,29 @@ const ManajemenLandingPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <div className="text-white">Memuat data...</div>
+      <div className="flex justify-center items-center h-screen">
+        <div className="w-8 h-8 rounded-full border-4 border-white border-t-transparent animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#181818] text-white p-6">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Manajemen Landing Page</h1>
-        <p className="text-gray-300 mb-6">
+    <div className="min-h-screen bg-[#141415] text-white p-8">
+      <div className="max-w-5xl p-4">
+        <h1 className="text-h2 mb-8">Manajemen Landing Page</h1>
+        <p className="text-[#B3B4B6] mb-8">
           Edit konten yang ingin diubah. Kosongkan field yang tidak ingin diubah.
         </p>
         
-        <div className="space-y-8">
-          
+        <div className="space-y-10">
           {/* Hero Section Form */}
-          <form onSubmit={handleUpdateHeroSection} className="bg-gray-800 p-6 rounded-lg">
-            <h2 className="text-xl font-semibold mb-4">Hero Section</h2>
+          <form onSubmit={handleUpdateHeroSection} className="bg-[#1E1E20] p-8 rounded-xl shadow-md space-y-6">
+            <h2 className="text-xl font-semibold mb-4 text-white">Hero Section</h2>
             
             <div className="space-y-4">
               <div>
-                <label htmlFor="heroTitle" className="block text-sm font-medium mb-2">
-                  Judul Hero <span className="text-gray-400">(Opsional)</span>
+                <label htmlFor="heroTitle" className="block text-b2 text-[#B3B4B6] mb-2">
+                  Judul Hero <span className="text-[#88898d]">(Opsional)</span>
                 </label>
                 <input
                   id="heroTitle"
@@ -341,13 +363,12 @@ const ManajemenLandingPage = () => {
                   value={heroTitle}
                   onChange={(e) => setHeroTitle(e.target.value)}
                   placeholder="Kosongkan jika tidak ingin mengubah"
-                  className="w-full bg-gray-700 border border-gray-600 text-white py-2 px-3 rounded-md focus:outline-none focus:border-red-500"
+                  className="w-full bg-[#222225] border border-[#B3B4B6] text-white py-2 px-3 rounded-md focus:outline-none focus:border-red-500"
                 />
               </div>
-
               <div>
-                <label htmlFor="heroDescription" className="block text-sm font-medium mb-2">
-                  Deskripsi Hero <span className="text-gray-400">(Opsional)</span>
+                <label htmlFor="heroDescription" className="block text-b2 text-[#B3B4B6] mb-2">
+                  Deskripsi Hero <span className="text-[#88898d]">(Opsional)</span>
                 </label>
                 <textarea
                   id="heroDescription"
@@ -355,13 +376,12 @@ const ManajemenLandingPage = () => {
                   value={heroDescription}
                   onChange={(e) => setHeroDescription(e.target.value)}
                   placeholder="Kosongkan jika tidak ingin mengubah"
-                  className="w-full bg-gray-700 border border-gray-600 text-white py-2 px-3 rounded-md focus:outline-none focus:border-red-500 resize-vertical"
+                  className="w-full bg-[#222225] border border-[#B3B4B6] text-white py-2 px-3 rounded-md focus:outline-none focus:border-red-500 resize-vertical"
                 />
               </div>
-
               <div>
-                <label htmlFor="heroButton" className="block text-sm font-medium mb-2">
-                  Teks Tombol Hero <span className="text-gray-400">(Opsional)</span>
+                <label htmlFor="heroButton" className="block text-b2 text-[#B3B4B6] mb-2">
+                  Teks Tombol Hero <span className="text-[#88898d]">(Opsional)</span>
                 </label>
                 <input
                   id="heroButton"
@@ -369,24 +389,24 @@ const ManajemenLandingPage = () => {
                   value={heroButton}
                   onChange={(e) => setHeroButton(e.target.value)}
                   placeholder="Kosongkan jika tidak ingin mengubah"
-                  className="w-full bg-gray-700 border border-gray-600 text-white py-2 px-3 rounded-md focus:outline-none focus:border-red-500"
+                  className="w-full bg-[#222225] border border-[#B3B4B6] text-white py-2 px-3 rounded-md focus:outline-none focus:border-red-500"
                 />
               </div>
-
               {/* Upload Gambar Hero */}
               <div>
-                <label htmlFor="heroImage" className="block text-sm font-medium mb-2">
-                  Gambar Background Hero <span className="text-gray-400">(Opsional)</span>
+                <label htmlFor="heroImage" className="block text-b2 text-[#B3B4B6] mb-2">
+                  Gambar Background Hero <span className="text-[#88898d]">(Opsional)</span>
                 </label>
-                <p className="text-xs text-gray-400 mb-2">Upload gambar dalam bentuk JPG atau PNG jika ingin mengubah</p>
-                <div className="flex items-center gap-2">
+                <p className="text-xs text-[#88898d] mb-2">Upload gambar JPG/PNG jika ingin mengubah</p>
+                <div className="flex items-center gap-3">
                   <label
                     htmlFor="heroImage"
-                    className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-md cursor-pointer border border-gray-600 hover:bg-gray-600 transition"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#222225] text-white rounded-md cursor-pointer border border-[#B3B4B6] hover:bg-[#2d2d30] transition"
                   >
                     <Image src={upload} alt='upload' width={16} height={16}/>
                     <span>Upload gambar</span>
                     <input
+                      ref={heroImageInputRef}
                       id="heroImage"
                       type="file"
                       accept="image/*"
@@ -402,7 +422,7 @@ const ManajemenLandingPage = () => {
                     />
                   </label>
                   {heroImageFile && (
-                    <div className="flex items-center bg-gray-900 text-white px-2 py-1 rounded">
+                    <div className="flex items-center bg-[#222225] text-white px-3 py-1 rounded">
                       <span className="text-xs">{heroImageFile.name}</span>
                       <button
                         type="button"
@@ -410,6 +430,7 @@ const ManajemenLandingPage = () => {
                         onClick={() => {
                           setHeroImageFile(null);
                           setHeroImagePreview('');
+                          if (heroImageInputRef.current) heroImageInputRef.current.value = "";
                         }}
                       >
                         &times;
@@ -420,15 +441,14 @@ const ManajemenLandingPage = () => {
                     <>
                       <button
                         type="button"
-                        className="text-blue-400 underline text-sm hover:text-blue-600 transition cursor-pointer"
+                        className="text-[#5F9DF7] underline text-sm hover:text-[#2e6dbd] transition cursor-pointer"
                         onClick={() => setShowHeroImageModal(true)}
                       >
                         Lihat gambar saat ini
                       </button>
-                      {/* 🎯 BUTTON HAPUS HERO IMAGE */}
                       <button
                         type="button"
-                        className="text-red-400 underline text-sm hover:text-red-600 transition cursor-pointer"
+                        className="text-[#E53935] underline text-sm hover:text-[#c62828] transition cursor-pointer"
                         onClick={() => handleDeleteImage('hero', heroImagePublicId)}
                         disabled={isSavingHero}
                       >
@@ -437,7 +457,6 @@ const ManajemenLandingPage = () => {
                     </>
                   )}
                 </div>
-
                 {/* Modal Preview Hero Image */}
                 {showHeroImageModal && (heroImagePreview || heroImageUrl) && (
                   <div
@@ -463,14 +482,12 @@ const ManajemenLandingPage = () => {
                   </div>
                 )}
               </div>
-
               {/* Success Message untuk Hero */}
               {heroSuccess && (
-                <div className="bg-green-900 border border-green-700 text-green-100 px-4 py-3 rounded">
+                <div className="bg-[#1F4439] border border-green-700 text-green-100 px-4 py-3 rounded">
                   {heroSuccess}
                 </div>
               )}
-
               {/* Submit Button untuk Hero */}
               <div className="flex justify-end">
                 <Button
@@ -478,20 +495,19 @@ const ManajemenLandingPage = () => {
                   label={isSavingHero ? 'Menyimpan Hero...' : 'Simpan Hero Section'}
                   isLoading={isSavingHero}
                   disabled={isSavingHero}
-                  className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-md font-semibold transition"
+                  className="bg-[#E53935] hover:bg-[#c62828] text-white px-6 py-3 rounded-md font-semibold transition"
                 />
               </div>
             </div>
           </form>
 
           {/* Tentang Section Form */}
-          <form onSubmit={handleUpdateTentangSection} className="bg-gray-800 p-6 rounded-lg">
-            <h2 className="text-xl font-semibold mb-4">Tentang Section</h2>
-            
+          <form onSubmit={handleUpdateTentangSection} className="bg-[#1E1E20] p-8 rounded-xl shadow-md space-y-6">
+            <h2 className="text-xl font-semibold mb-4 text-white">Tentang Section</h2>
             <div className="space-y-4">
               <div>
-                <label htmlFor="tentangTitle" className="block text-sm font-medium mb-2">
-                  Judul Tentang <span className="text-gray-400">(Opsional)</span>
+                <label htmlFor="tentangTitle" className="block text-b2 text-[#B3B4B6] mb-2">
+                  Judul Tentang <span className="text-[#88898d]">(Opsional)</span>
                 </label>
                 <input
                   id="tentangTitle"
@@ -499,13 +515,12 @@ const ManajemenLandingPage = () => {
                   value={tentangTitle}
                   onChange={(e) => setTentangTitle(e.target.value)}
                   placeholder="Kosongkan jika tidak ingin mengubah"
-                  className="w-full bg-gray-700 border border-gray-600 text-white py-2 px-3 rounded-md focus:outline-none focus:border-red-500"
+                  className="w-full bg-[#222225] border border-[#B3B4B6] text-white py-2 px-3 rounded-md focus:outline-none focus:border-red-500"
                 />
               </div>
-
               <div>
-                <label htmlFor="tentangDescription" className="block text-sm font-medium mb-2">
-                  Deskripsi Tentang <span className="text-gray-400">(Opsional)</span>
+                <label htmlFor="tentangDescription" className="block text-b2 text-[#B3B4B6] mb-2">
+                  Deskripsi Tentang <span className="text-[#88898d]">(Opsional)</span>
                 </label>
                 <textarea
                   id="tentangDescription"
@@ -513,13 +528,12 @@ const ManajemenLandingPage = () => {
                   value={tentangDescription}
                   onChange={(e) => setTentangDescription(e.target.value)}
                   placeholder="Kosongkan jika tidak ingin mengubah"
-                  className="w-full bg-gray-700 border border-gray-600 text-white py-2 px-3 rounded-md focus:outline-none focus:border-red-500 resize-vertical"
+                  className="w-full bg-[#222225] border border-[#B3B4B6] text-white py-2 px-3 rounded-md focus:outline-none focus:border-red-500 resize-vertical"
                 />
               </div>
-
               <div>
-                <label htmlFor="tentangButton" className="block text-sm font-medium mb-2">
-                  Teks Tombol Tentang <span className="text-gray-400">(Opsional)</span>
+                <label htmlFor="tentangButton" className="block text-b2 text-[#B3B4B6] mb-2">
+                  Teks Tombol Tentang <span className="text-[#88898d]">(Opsional)</span>
                 </label>
                 <input
                   id="tentangButton"
@@ -527,24 +541,24 @@ const ManajemenLandingPage = () => {
                   value={tentangButton}
                   onChange={(e) => setTentangButton(e.target.value)}
                   placeholder="Kosongkan jika tidak ingin mengubah"
-                  className="w-full bg-gray-700 border border-gray-600 text-white py-2 px-3 rounded-md focus:outline-none focus:border-red-500"
+                  className="w-full bg-[#222225] border border-[#B3B4B6] text-white py-2 px-3 rounded-md focus:outline-none focus:border-red-500"
                 />
               </div>
-
               {/* Upload Gambar Tentang */}
               <div>
-                <label htmlFor="tentangImage" className="block text-sm font-medium mb-2">
-                  Logo/Gambar Tentang <span className="text-gray-400">(Opsional)</span>
+                <label htmlFor="tentangImage" className="block text-b2 text-[#B3B4B6] mb-2">
+                  Logo/Gambar Tentang <span className="text-[#88898d]">(Opsional)</span>
                 </label>
-                <p className="text-xs text-gray-400 mb-2">Upload gambar dalam bentuk JPG atau PNG jika ingin mengubah</p>
-                <div className="flex items-center gap-2">
+                <p className="text-xs text-[#88898d] mb-2">Upload gambar JPG/PNG jika ingin mengubah</p>
+                <div className="flex items-center gap-3">
                   <label
                     htmlFor="tentangImage"
-                    className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-md cursor-pointer border border-gray-600 hover:bg-gray-600 transition"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#222225] text-white rounded-md cursor-pointer border border-[#B3B4B6] hover:bg-[#2d2d30] transition"
                   >
                     <Image src={upload} alt='upload' width={16} height={16}/>
                     <span>Upload gambar</span>
                     <input
+                      ref={tentangImageInputRef}
                       id="tentangImage"
                       type="file"
                       accept="image/*"
@@ -560,7 +574,7 @@ const ManajemenLandingPage = () => {
                     />
                   </label>
                   {tentangImageFile && (
-                    <div className="flex items-center bg-gray-900 text-white px-2 py-1 rounded">
+                    <div className="flex items-center bg-[#222225] text-white px-3 py-1 rounded">
                       <span className="text-xs">{tentangImageFile.name}</span>
                       <button
                         type="button"
@@ -568,6 +582,7 @@ const ManajemenLandingPage = () => {
                         onClick={() => {
                           setTentangImageFile(null);
                           setTentangImagePreview('');
+                          if (tentangImageInputRef.current) tentangImageInputRef.current.value = "";
                         }}
                       >
                         &times;
@@ -578,15 +593,14 @@ const ManajemenLandingPage = () => {
                     <>
                       <button
                         type="button"
-                        className="text-blue-400 underline text-sm hover:text-blue-600 transition cursor-pointer"
+                        className="text-[#5F9DF7] underline text-sm hover:text-[#2e6dbd] transition cursor-pointer"
                         onClick={() => setShowTentangImageModal(true)}
                       >
                         Lihat gambar saat ini
                       </button>
-                      {/* 🎯 BUTTON HAPUS TENTANG IMAGE */}
                       <button
                         type="button"
-                        className="text-red-400 underline text-sm hover:text-red-600 transition cursor-pointer"
+                        className="text-[#E53935] underline text-sm hover:text-[#c62828] transition cursor-pointer"
                         onClick={() => handleDeleteImage('tentang', tentangImagePublicId)}
                         disabled={isSavingTentang}
                       >
@@ -595,7 +609,6 @@ const ManajemenLandingPage = () => {
                     </>
                   )}
                 </div>
-
                 {/* Modal Preview Tentang Image */}
                 {showTentangImageModal && (tentangImagePreview || tentangImageUrl) && (
                   <div
@@ -621,14 +634,12 @@ const ManajemenLandingPage = () => {
                   </div>
                 )}
               </div>
-
               {/* Success Message untuk Tentang */}
               {tentangSuccess && (
-                <div className="bg-green-900 border border-green-700 text-green-100 px-4 py-3 rounded">
+                <div className="bg-[#1F4439] border border-green-700 text-green-100 px-4 py-3 rounded">
                   {tentangSuccess}
                 </div>
               )}
-
               {/* Submit Button untuk Tentang */}
               <div className="flex justify-end">
                 <Button
@@ -636,7 +647,7 @@ const ManajemenLandingPage = () => {
                   label={isSavingTentang ? 'Menyimpan Tentang...' : 'Simpan Tentang Section'}
                   isLoading={isSavingTentang}
                   disabled={isSavingTentang}
-                  className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-md font-semibold transition"
+                  className="bg-[#E53935] hover:bg-[#c62828] text-white px-6 py-3 rounded-md font-semibold transition"
                 />
               </div>
             </div>
@@ -644,7 +655,7 @@ const ManajemenLandingPage = () => {
 
           {/* Error Message Global */}
           {error && (
-            <div className="bg-red-900 border border-red-700 text-red-100 px-4 py-3 rounded">
+            <div className="bg-[#2e0707] border border-red-700 text-red-100 px-4 py-3 rounded">
               {error}
             </div>
           )}

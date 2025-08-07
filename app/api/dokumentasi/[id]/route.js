@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 // GET: get one document based on id
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const doc = await prisma.document.findUnique({
       where: {
         id: id,
