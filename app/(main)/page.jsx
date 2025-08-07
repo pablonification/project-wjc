@@ -1,6 +1,8 @@
 import { HeroSection, TentangSection, KegiatanSection, BeritaSection } from './home-sections';
 import { Navbar, Footer } from '../components';
 
+export const dynamic = 'force-dynamic'
+
 async function getLandingPageContent() {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
