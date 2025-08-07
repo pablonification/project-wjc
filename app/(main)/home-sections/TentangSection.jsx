@@ -1,6 +1,6 @@
 import Image from 'next/image';
-import { ArrowOutward, MedDocs } from '../../public/assets/image';
-import { Button } from '../components';
+import { ArrowOutward, MedDocs } from '../../../public/assets/image';
+import { Button } from '../../components';
 
 const TentangSection = ({ content }) => {
   return (

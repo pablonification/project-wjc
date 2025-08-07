@@ -1,9 +1,9 @@
 "use client";
-import { Navbar, Footer, Button } from "../components";
+import { Navbar, Footer, Button } from "../../components";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import BannerAd from "../components/BannerAd";
+import BannerAd from "../../components/BannerAd";
 
 // Skeleton loader for the activities list
 function KegiatanListSkeleton() {

@@ -1,5 +1,5 @@
 // skeleton
-import { Navbar, Footer } from "../components";
+import { Navbar, Footer } from "../../components";
 
 export default function ProfileLoading() {
   return (

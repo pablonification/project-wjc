@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '../components';
+import { Button } from '../../components';
 import Image from 'next/image';
-import { upload } from "../../public/assets/image";
+import { upload } from "../../../public/assets/image";
 import { useRouter } from 'next/navigation';
 
 export default function ProfileClient({ initialUser }) {
