@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 // Fungsi ini berjalan di server untuk mengambil data profil awal
 async function getProfileData() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
     
     const sessionCookies = await cookies();
 

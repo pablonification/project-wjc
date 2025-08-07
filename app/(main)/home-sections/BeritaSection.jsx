@@ -7,7 +7,7 @@ import { HomeBeritaCard } from "../../components";
 // Helper function untuk mengambil data berita terbaru dari API
 async function getLatestNews() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
     const res = await fetch(`${baseUrl}/api/berita`, { cache: 'no-store' });
 
     if (!res.ok) {
