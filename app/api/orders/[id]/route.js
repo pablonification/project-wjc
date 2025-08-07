@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 // GET: get single order by ID
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     const order = await prisma.order.findUnique({
       where: { id },
@@ -40,7 +40,7 @@ export async function GET(request, { params }) {
 // PATCH: update status and resi
 export async function PATCH(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { status, resi } = body;
     const updateData = {};

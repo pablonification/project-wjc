@@ -286,3 +286,19 @@ model Banner {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model LandingPageContent {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  heroTitle          String
+  heroDescription    String
+  heroButton         String
+  heroImageUrl       String?  // URL gambar hero
+  heroImagePublicId  String?  // Public ID Cloudinary untuk hero
+  tentangTitle       String
+  tentangDescription String
+  tentangButton      String
+  tentangImageUrl    String?  // URL gambar tentang  
+  tentangImagePublicId String? // Public ID Cloudinary untuk tentang
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}

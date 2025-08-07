@@ -1,6 +1,8 @@
 'use client';
 
+import {Delete} from '../../../public/assets/image'
 import { useState, useEffect } from 'react';
+import Image from "next/image";
 
 const Page = () => {
 
@@ -94,31 +96,31 @@ const Page = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-md">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">
-          Admin Dashboard - Kelola Whitelist
+    <div className="min-h-screen bg-[#141415] p-8">
+      <div className="max-w-2xl p-4 rounded-xl shadow-md">
+        <h1 className="text-h2 text-white mb-6">
+          Pengelolaan Whitelist
         </h1>
 
         {/* Form untuk menambah nomor baru */}
         <form onSubmit={handleAddNumber} className="mb-8">
-          <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="phoneNumber" className="block text-b2 text-[#B3B4B6] mb-2">
             Tambah Nomor Telepon Baru
           </label>
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex flex-col md:flex-row gap-3">
             <input
               id="phoneNumber"
               type="tel"
               value={newNumber}
               onChange={(e) => setNewNumber(e.target.value)}
               placeholder="Contoh: 081234567890"
-              className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="flex-grow px-3 py-2 text-white border border-[#65666B] rounded-sm"
             />
             <button
               type="submit"
-              className="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="px-4 py-2 bg-[#65666B] text-white font-semibold rounded-md shadow-sm cursor-pointer"
             >
-              Tambah
+              Tambah Nomor Baru
             </button>
           </div>
         </form>
@@ -127,26 +129,31 @@ const Page = () => {
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
         {/* Daftar nomor yang sudah di-whitelist */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-gray-800">Daftar Nomor</h2>
+        <div>
+          <h2 className="block text-b2 text-[#B3B4B6] mb-2">Daftar Nomor</h2>
+          <div className='flex flex-row justify-between text-[#B3B4B6] pr-15 bg-[#1E1E20] rounded-sm py-2 px-3 mb-2'>
+            <p>Nomor Telepon</p>
+            <p>Aksi</p>
+          </div>
           {isLoading ? (
-            <p className="text-gray-500">Memuat data...</p>
+            <p className="text-white">Memuat data...</p>
           ) : whitelist.length > 0 ? (
-            <ul className="divide-y divide-gray-200">
+            <ul>
               {whitelist.map((item) => (
-                <li key={item.id} className="py-3 flex justify-between items-center">
-                  <span className="text-gray-900">{item.phoneNumber}</span>
+                <li key={item.id} className="py-3 px-2 flex justify-between items-center">
+                  <span className="text-white">{item.phoneNumber}</span>
                   <button
                     onClick={() => handleDeleteNumber(item.id)}
-                    className="px-3 py-1 bg-red-500 text-white text-sm font-medium rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    className="flex flex-row gap-2 px-2 py-1 cursor-pointer bg-red-500 text-white text-b2 rounded-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                   >
-                    Hapus
+                    <Image src={Delete} alt='icon' width={20} height={20} />
+                    <p>Hapus</p>
                   </button>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-gray-500">Belum ada nomor yang di-whitelist.</p>
+            <p className="text-white">Belum ada nomor yang di-whitelist.</p>
           )}
         </div>
       </div>

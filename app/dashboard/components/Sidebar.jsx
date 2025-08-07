@@ -1,82 +1,102 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from 'next/image';
 import {
-  Users,
-  Newspaper,
-  Calendar,
-  ShoppingBag,
-  Camera,
-  ShieldCheck,
-  LayoutDashboard,
-  ShoppingCart,
-  ClipboardList, // Icon baru
-} from "lucide-react";
+      MedDocs,
+      SidebarBanner,
+      SidebarDashboard,
+      SidebarDokumentasi,
+      SidebarBerita,
+      SidebarKegiatan,
+      SidebarMerchandise,
+      SidebarPendaftaranKegiatan,
+      SidebarUser,
+      SidebarPesananMerchandise,
+      SidebarWhitelist,
+} from '../../../public/assets/image';
 
-const links = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  {
-    name: "Whitelist",
-    href: "/dashboard/manajemen-whitelist",
-    icon: ShieldCheck,
-  },
-  { name: "Users", href: "/dashboard/manajemen-user", icon: Users },
-  { name: "Berita", href: "/dashboard/manajemen-berita", icon: Newspaper },
-  { name: "Kegiatan", href: "/dashboard/manajemen-kegiatan", icon: Calendar },
-  {
-    name: "Pendaftaran Kegiatan",
-    href: "/dashboard/manajemen-pendaftaran-kegiatan",
-    icon: ClipboardList,
-  },
-  {
-    name: "Merchandise",
-    href: "/dashboard/manajemen-merchandise",
-    icon: ShoppingBag,
-  },
-  {
-    name: "Manajemen Pesanan",
-    href: "/dashboard/manajemen-order",
-    icon: ShoppingCart,
-  },
-  {
-    name: "Dokumentasi",
-    href: "/dashboard/manajemen-dokumentasi",
-    icon: Camera,
-  },
-  {
-    name: "Banner Ads",
-    href: "/dashboard/banner-ads",
-    icon: Camera, // Assuming Camera icon for Banner Ads as it's a media management
-  },
+const dashboard = [
+  { name: "Dashboard", href: "/dashboard", icon: SidebarDashboard },
+];
+const konten = [
+  { name: "Halaman Utama", href: "/dashboard/manajemen-landing-page", icon: SidebarBerita },
+  { name: "Berita", href: "/dashboard/manajemen-berita", icon: SidebarBerita },
+  { name: "Kegiatan", href: "/dashboard/manajemen-kegiatan", icon: SidebarKegiatan },
+  { name: "Merchandise", href: "/dashboard/manajemen-merchandise", icon: SidebarMerchandise },
+  { name: "Dokumentasi", href: "/dashboard/manajemen-dokumentasi", icon: SidebarDokumentasi },
+];
+const aktivitas = [
+  { name: "Pendaftaran Kegiatan", href: "/dashboard/manajemen-pendaftaran-kegiatan", icon: SidebarPendaftaranKegiatan },
+  { name: "Manajemen Pesanan", href: "/dashboard/manajemen-order", icon: SidebarPesananMerchandise },
+];
+const anggota = [
+  { name: "Whitelist", href: "/dashboard/manajemen-whitelist", icon: SidebarWhitelist },
+  { name: "Users", href: "/dashboard/manajemen-user", icon: SidebarUser },
+];
+const promosi = [
+  { name: "Banner Ads", href: "/dashboard/banner-ads", icon: SidebarBanner },
+];
+
+// render semua konten
+const sidebarSections = [
+  { title: "Anggota", shortTitle: "Anggota", links: anggota },
+  { title: "Konten dan Produk", shortTitle: "Konten", links: konten },
+  { title: "Aktivitas Pengguna", shortTitle: "Aktivitas", links: aktivitas },
+  { title: "Promosi dan Iklan", shortTitle: "Promosi", links: promosi },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="flex h-full flex-col px-3 py-4 md:px-2 bg-gray-800 text-white">
-      <div className="mb-2 flex h-20 items-end justify-start rounded-md bg-gray-700 p-4 md:h-40">
-        <Link href="/" className="text-2xl font-bold">
-          MedDocs WJC
+    <div className="flex h-full w-[90px] md:w-3xs flex-col py-11 px-4 md:px-6 bg-black text-white">
+      <div className="mb-11 flex justify-center md:justify-start">
+        <Link href="/">
+          <Image
+            src={MedDocs}
+            width={64}
+            height={64}
+            alt="logo"
+          />
         </Link>
       </div>
-      <div className="flex grow flex-row justify-between space-x-2 md:flex-col md:space-x-0 md:space-y-2">
-        {links.map((link) => {
-          const LinkIcon = link.icon;
-          return (
-            <Link
-              key={link.name}
-              href={link.href}
-              className={`flex h-[48px] grow items-center justify-center gap-2 rounded-md p-3 text-sm font-medium hover:bg-sky-500 hover:text-white md:flex-none md:justify-start md:p-2 md:px-3
-                ${pathname === link.href ? "bg-sky-600 text-white" : ""}
-              `}
-            >
-              <LinkIcon className="w-6" />
-              <p className="hidden md:block">{link.name}</p>
-            </Link>
-          );
-        })}
-        <div className="hidden h-auto w-full grow rounded-md bg-gray-800 md:block"></div>
+
+      <div className="flex flex-col gap-4">
+        {/* Link Dashboard*/}
+        <Link
+          href={dashboard[0].href}
+          className={`flex h-[36px] grow items-center justify-center gap-2 rounded-md p-3 text-sm font-medium hover:bg-[#1E1E20] hover:text-white md:flex-none md:justify-start md:p-2 md:px-3
+            ${pathname === dashboard[0].href ? "bg-[#1E1E20] text-white" : ""}
+          `}
+        >
+          <Image src={dashboard[0].icon} alt="icon"/>
+          <p className="hidden md:block">{dashboard[0].name}</p>
+        </Link>
+
+        {sidebarSections.map((section) => (
+          <div key={section.title} className="flex flex-col space-y-1">
+            <h1 className="px-2 text-center text-b2 text-[#B3B4B6] pb-1 md:text-left">
+              <span className="md:hidden">{section.shortTitle}</span>
+              <span className="hidden md:inline">{section.title}</span>
+            </h1>
+            {section.links.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={`flex h-[36px] grow items-center justify-center gap-2 rounded-md p-3 text-sm font-medium hover:bg-[#1E1E20] hover:text-white md:flex-none md:justify-start md:p-2 md:px-3
+                    ${isActive ? "bg-[#1E1E20] text-white" : ""}
+                  `}
+                >
+                  <Image src={link.icon} alt={`${link.name} icon`}/>
+                  <p className="hidden md:block">{link.name}</p>
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 
 export async function GET(request, { params }) {
   try {
-    const { slug } = params;
+    const { slug } = await params;
 
     if (!slug) {
       return NextResponse.json(
@@ -35,7 +35,7 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
-    const { slug } = params;
+    const { slug } = await params;
     const body = await request.json();
     const { name, price, description, imageUrls } = body;
 
@@ -74,7 +74,7 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
     try {
-        const { slug } = params;
+        const { slug } = await params;
 
         await prisma.merchandise.delete({
             where: { slug },

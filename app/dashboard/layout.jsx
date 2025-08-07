@@ -2,11 +2,11 @@ import Sidebar from "./components/Sidebar";
 
 export default function DashboardLayout({ children }) {
   return (
-    <div className="flex h-screen flex-col md:flex-row md:overflow-hidden bg-gray-50">
-      <div className="w-full flex-none md:w-64">
+    <div className="min-h-screen w-full bg-[#141415] flex">
+      <div className="fixed top-0 h-screen">
         <Sidebar />
       </div>
-      <div className="flex-grow p-6 md:overflow-y-auto md:p-12">{children}</div>
+      <div className="ml-20 md:ml-64 flex-1 bg-[#141415] min-h-screen">{children}</div>
     </div>
   );
 }

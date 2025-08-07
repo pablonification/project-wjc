@@ -59,78 +59,119 @@ const ActivityRegistrationsDashboard = () => {
       "Total Bayar (Rp)": reg.totalPrice,
       "Status Pembayaran": reg.paymentStatus,
     }));
-    
     const activityName = activities.find(a => a.id === selectedActivity)?.slug || 'semua-kegiatan';
     exportToExcel(dataToExport, `pendaftar_${activityName}_${new Date().toISOString().split('T')[0]}`);
   };
-  
+
   const getStatusBadge = (status) => {
-    const statusStyles = { PENDING: "bg-yellow-100 text-yellow-800", PAID: "bg-green-100 text-green-800", FAILED: "bg-red-100 text-red-800", CANCELLED: "bg-gray-100 text-gray-800"};
-    const statusText = { PENDING: "Menunggu", PAID: "Dibayar", FAILED: "Gagal", CANCELLED: "Batal"};
-    return (<span className={`px-2 py-1 rounded-full text-xs font-medium ${statusStyles[status] || statusStyles.CANCELLED}`}>{statusText[status] || status}</span>);
+    const statusStyles = {
+      PAID: "bg-[#5FC364] text-white",
+      PENDING: "bg-[#C4A254] text-white",
+      FAILED: "bg-[#E53935] text-white",
+      CANCELLED: "bg-[#88898d] text-white"
+    };
+    const statusText = {
+      PAID: "Dibayar",
+      PENDING: "Menunggu",
+      FAILED: "Gagal",
+      CANCELLED: "Batal"
+    };
+    return (
+      <span className={`px-4 py-1 rounded-lg text-sm font-semibold ${statusStyles[status] || statusStyles.CANCELLED}`}>
+        {statusText[status] || status}
+      </span>
+    );
   };
 
-  if (loading) return <p>Memuat data...</p>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="w-8 h-8 rounded-full border-4 border-white border-t-transparent animate-spin"></div>
+      </div>
+    );
+  }
   if (error) return <p className="text-red-500">{error}</p>;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto bg-white p-6 rounded-xl shadow-md">
-        <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
-          <h1 className="text-2xl font-bold">Pendaftaran Kegiatan</h1>
+    <div className="min-h-screen bg-[#141415] p-8">
+      <div className="max-w-6xl bg-[#141415] p-4">
+        <h1 className="text-h2 text-white mb-8">Pendaftaran Kegiatan</h1>
+        <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
+          {/* Filter + Export */}
           <div className="flex items-center gap-4">
-            <select
-              value={selectedActivity}
-              onChange={(e) => setSelectedActivity(e.target.value)}
-              className="border rounded px-3 py-2"
-            >
-              <option value="all">Semua Kegiatan</option>
-              {activities.map((act) => (
-                <option key={act.id} value={act.id}>{act.title}</option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={selectedActivity}
+                onChange={(e) => setSelectedActivity(e.target.value)}
+                className="w-full bg-[#222225] text-white font-semibold rounded-lg px-10 py-2 appearance-none outline-none border border-[#65666B] transition"
+                style={{
+                  WebkitAppearance: "none",
+                  MozAppearance: "none",
+                  appearance: "none"
+                }}
+              >
+                <option value="all">Semua Kegiatan</option>
+                {activities.map(act => (
+                  <option key={act.id} value={act.id}>{act.title}</option>
+                ))}
+              </select>
+              {/* Filter icon kiri */}
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg width="18" height="18" viewBox="0 0 24 24" stroke="#B3B4B6" fill="none">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6h18M6 12h12M9 18h6" />
+                </svg>
+              </span>
+            </div>
             <button
               onClick={handleExport}
               disabled={filteredRegistrations.length === 0}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400"
+              className="px-5 py-2 bg-[#034e07] text-white rounded-md font-medium hover:bg-[#509956] disabled:bg-[#65666B] transition cursor-pointer"
             >
               Export ke XLSX
             </button>
           </div>
         </div>
-
-        <div className="overflow-x-auto">
-          <table className="min-w-full table-auto">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kegiatan</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peserta</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detail</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredRegistrations.length > 0 ? filteredRegistrations.map((reg) => (
-                  <tr key={reg.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-2 font-semibold">{reg.activity.title}</td>
-                    <td className="px-4 py-2">{reg.user.name} <br/> <span className="text-xs text-gray-500">{reg.user.phoneNumber}</span></td>
-                    <td className="px-4 py-2 text-sm">
-                      Kaos: {reg.tshirtSize} <br/>
-                      Penginapan: {reg.needAccommodation ? `Ya (${reg.roomType})` : 'Tidak'}
-                    </td>
-                    <td className="px-4 py-2 font-semibold">Rp{new Intl.NumberFormat("id-ID").format(reg.totalPrice)}</td>
-                    <td className="px-4 py-2">{getStatusBadge(reg.paymentStatus)}</td>
-                    <td className="px-4 py-2 text-sm">{new Date(reg.createdAt).toLocaleDateString("id-ID")}</td>
-                  </tr>
-                )) : (
-                    <tr>
-                        <td colSpan="6" className="text-center py-4">Tidak ada pendaftar.</td>
-                    </tr>
-                )}
-              </tbody>
-          </table>
+        <h2 className="block text-b2 text-[#B3B4B6] mb-2">Daftar Nomor</h2>
+        <div className="w-full overflow-x-auto bg-[#141415]">
+          <div className="min-w-[1100px] grid grid-cols-6 text-[#B3B4B6] bg-[#1E1E20] rounded-sm py-2 px-3 mb-2 font-medium">
+            <p>Kegiatan</p>
+            <p>Peserta</p>
+            <p>Detail</p>
+            <p>Total</p>
+            <p>Tanggal</p>
+            <p className="text-right">Status</p>
+          </div>
+          {filteredRegistrations.length > 0 ? (
+            <ul className="min-w-[1100px]">
+              {filteredRegistrations.map((reg) => (
+                <li key={reg.id} className="grid grid-cols-6 py-3 px-3 items-center border-b border-[#222225] last:border-none">
+                  {/* Kegiatan */}
+                  <span className="text-white font-medium">{reg.activity.title}</span>
+                  {/* Peserta */}
+                  <span className="text-white">
+                    {reg.user.name}
+                    <br />
+                    <span className="text-[#B3B4B6] text-sm">{reg.user.phoneNumber}</span>
+                  </span>
+                  {/* Detail */}
+                  <span className="text-white text-sm">
+                    Kaos: {reg.tshirtSize}<br />
+                    Penginapan: {reg.needAccommodation ? `Ya${reg.roomType ? ` (${reg.roomType})` : ''}` : 'Tidak'}
+                  </span>
+                  {/* Total */}
+                  <span className="text-white font-semibold">
+                    {reg.totalPrice ? `Rp ${new Intl.NumberFormat("id-ID").format(reg.totalPrice)}` : "-"}
+                  </span>
+                  {/* Tanggal */}
+                  <span className="text-white text-sm">{new Date(reg.createdAt).toLocaleDateString("id-ID")}</span>
+                  {/* Status */}
+                  <span className="flex justify-end">{getStatusBadge(reg.paymentStatus)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-white min-w-[1100px] py-8 text-center">Tidak ada pendaftar.</p>
+          )}
         </div>
       </div>
     </div>

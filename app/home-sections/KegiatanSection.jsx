@@ -1,30 +1,28 @@
-'use client'
-import { HomeKegiatanCard } from "../components"
+import { HomeKegiatanCard } from "../components";
 import Image from 'next/image';
-import {ArrowOutward, Placeholder} from '../../public/assets/image'
+import { ArrowOutward, Placeholder } from '../../public/assets/image';
 
-const kegiatanData = [
-  {
-    id: 1,
-    title: "Webinar 'Memulai Karier di Dunia Tech'",
-    description: "Belajar dari para profesional tentang langkah pertama di industri teknologi, membahas tren, tips, dan peluang. Sesi interaktif dengan Q&A.",
-    imageUrl: Placeholder,
-    date: "10 Juli 2025",
-    location: "Online via Zoom",
-    href: "/kegiatan"
-  },
-  {
-    id: 2,
-    title: "Workshop Desain UI/UX Fundamental",
-    description: "Pelajari dasar-dasar desain antarmuka pengguna dan pengalaman pengguna dengan studi kasus praktis dan proyek mini yang menarik.",
-    imageUrl: Placeholder,
-    date: "20 Agustus 2025",
-    location: "Gedung Serbaguna Kota Bandung",
-    href: "/kegiatan"
-  },
-];
+async function getLatestActivities() {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+    const res = await fetch(`${baseUrl}/api/kegiatan`, { cache: 'no-store' });
 
-const KegiatanSection = () => {
+    if (!res.ok) {
+      console.error("Gagal mengambil data kegiatan untuk homepage");
+      return [];
+    }
+
+    const allActivities = await res.json();
+    return allActivities.slice(0, 2);
+  } catch (error) {
+    console.error("Error di getLatestActivities:", error);
+    return [];
+  }
+}
+
+const KegiatanSection = async () => {
+  const latestActivities = await getLatestActivities();
+
   return (
     <div className='text-white mx-6 lg:mx-18 my-10 flex flex-col gap-10'>
       <div className="flex justify-between items-center">
@@ -37,20 +35,23 @@ const KegiatanSection = () => {
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {kegiatanData.map((kegiatan) => (
+        {latestActivities.map((kegiatan) => (
           <HomeKegiatanCard
             key={kegiatan.id}
-            href={kegiatan.href}
-            img={kegiatan.imageUrl}
+            slug={kegiatan.slug}
+            img={kegiatan.imageUrl || Placeholder}
             alt={kegiatan.title}
-            date={kegiatan.date}
+            date={new Date(kegiatan.dateStart).toLocaleDateString("id-ID", {
+                day: 'numeric', month: 'long', year: 'numeric'
+            })}
             description={kegiatan.description} 
             lokasi={kegiatan.location}
+            title={kegiatan.title} 
           />
         ))}
       </div>
     </div>
-  )
+  );
 }
 
-export default KegiatanSection
+export default KegiatanSection;
