@@ -5,6 +5,8 @@ import ProfileClient from "./ProfileClient"; // Kita akan buat file ini selanjut
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+export const dynamic = 'force-dynamic'
+
 // Fungsi ini berjalan di server untuk mengambil data profil awal
 async function getProfileData() {
   try {

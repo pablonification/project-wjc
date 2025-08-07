@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation';
 import ChangePasswordClient from './ChangePasswordClient';
 import { Navbar, Footer } from '../../components';
 
+export const dynamic = 'force-dynamic'
+
 async function getUserData() {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
