@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from "next/image";
-import { MedDocs } from "../../../public/assets/image";
+import { MedDocs, Hide, Show } from "../../../public/assets/image";
 import { Button } from "../../components";
 import { useRouter } from 'next/navigation';
 
@@ -30,6 +30,13 @@ const RegisterPage = () => {
   const [generalError, setGeneralError] = useState('');
   const [resendOtpMessage, setResendOtpMessage] = useState('');
   const [isResendingOtp, setIsResendingOtp] = useState(false);
+
+  // Fungsi untuk show/hide password
+  const [showPassword, setShowPassword] = useState(false);
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
   // Handler for resend OTP
   const handleResendOtp = async () => {
     setIsResendingOtp(true);
@@ -501,25 +508,39 @@ const RegisterPage = () => {
               <label htmlFor="password" className="block text-b1 text-white mb-1">
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  resetAllErrors();
-                }}
-                onFocus={() => {
-                  resetAllErrors();
-                }}
-                className={`
-                  w-full py-1 border-b-1
-                  ${passwordError ? 'border-red-600' : 'border-gray-200'}
-                  text-white text-sh1 font-medium placeholder:font-normal
-                  focus:outline-none focus:border-white focus:border-b-2
-                  focus:placeholder-transparent
-                `}
-              />
+              <div className='relative'>
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    resetAllErrors();
+                  }}
+                  onFocus={() => {
+                    resetAllErrors();
+                  }}
+                  className={`
+                    w-full py-1 border-b-1
+                    ${passwordError ? 'border-red-600' : 'border-gray-200'}
+                    text-white text-sh1 font-medium placeholder:font-normal
+                    focus:outline-none focus:border-white focus:border-b-2
+                    focus:placeholder-transparent
+                  `}
+                />
+                <button
+                  type="button"
+                  onClick={handleClickShowPassword}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 p-2"
+                >
+                  <Image
+                    src={showPassword ? Hide : Show} 
+                    alt={showPassword ? 'Hide password' : 'Show password'}
+                    width={24}
+                    height={24} 
+                  />
+                </button>
+              </div>
               {passwordError && (
                 <p className="text-red-600 text-xs mt-1">{passwordError}</p>
               )}
