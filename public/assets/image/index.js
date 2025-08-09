@@ -21,6 +21,8 @@ import SidebarWhitelist from './sidebar-whitelist.png'
 import Delete from './delete.png'
 import Edit from './edit.png'
 import Logout from './logout.png'
+import Hide from './hide.png'
+import Show from './show.png'
 
 export{
     Logo,
@@ -46,4 +48,6 @@ export{
     Delete,
     Edit,
     Logout,
+    Hide,
+    Show,
 }

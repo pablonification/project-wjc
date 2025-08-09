@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from "next/image";
-import { MedDocs } from "../../../public/assets/image";
+import { MedDocs, Hide, Show } from "../../../public/assets/image";
 import { Button } from "../../components";
 import { useRouter } from 'next/navigation';
 
@@ -35,6 +35,17 @@ const ForgotPasswordPage = () => {
     setOtpError('');
     setNewPasswordError('');
     setConfirmNewPasswordError('');
+  };
+
+  // Fungsi untuk show/hide password
+  const [showPassword, setShowPassword] = useState(false);
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const handleClickShowConfirmPassword = () => {
+    setShowConfirmPassword(!showConfirmPassword);
   };
 
   // Kondisi utk memperbarui state 'otp' (string) setiap kali 'otpDigits' berubah
@@ -353,25 +364,39 @@ const ForgotPasswordPage = () => {
               <label htmlFor="newPassword" className="block text-b1 text-white mb-1">
                 Password Baru
               </label>
-              <input
-                id="newPassword"
-                type="password"
-                value={newPassword}
-                onChange={(e) => {
-                  setNewPassword(e.target.value);
-                  resetAllErrors();
-                }}
-                onFocus={() => {
-                  resetAllErrors();
-                }}
-                className={`
-                  w-full py-1 border-b-1
-                  ${newPasswordError ? 'border-red-600' : 'border-gray-200'}
-                  text-white text-sh1 font-medium placeholder:font-normal
-                  focus:outline-none focus:border-white focus:border-b-2
-                  focus:placeholder-transparent
-                `}
-              />
+              <div className='relative'>
+                <input
+                  id="newPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={(e) => {
+                    setNewPassword(e.target.value);
+                    resetAllErrors();
+                  }}
+                  onFocus={() => {
+                    resetAllErrors();
+                  }}
+                  className={`
+                    w-full py-1 border-b-1
+                    ${newPasswordError ? 'border-red-600' : 'border-gray-200'}
+                    text-white text-sh1 font-medium placeholder:font-normal
+                    focus:outline-none focus:border-white focus:border-b-2
+                    focus:placeholder-transparent
+                  `}
+                />
+                <button
+                  type="button"
+                  onClick={handleClickShowPassword}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 p-2"
+                >
+                  <Image
+                    src={showPassword ? Hide : Show} 
+                    alt={showPassword ? 'Hide password' : 'Show password'}
+                    width={24}
+                    height={24} 
+                  />
+                </button>
+              </div>
               {newPasswordError && (
                 <p className="text-red-600 text-xs mt-1">{newPasswordError}</p>
               )}
@@ -380,25 +405,39 @@ const ForgotPasswordPage = () => {
               <label htmlFor="confirmNewPassword" className="block text-b1 text-white mb-1">
                 Konfirmasi Password Baru
               </label>
-              <input
-                id="confirmNewPassword"
-                type="password"
-                value={confirmNewPassword}
-                onChange={(e) => {
-                  setConfirmNewPassword(e.target.value);
-                  resetAllErrors();
-                }}
-                onFocus={() => {
-                  resetAllErrors();
-                }}
-                className={`
-                  w-full py-1 border-b-1
-                  ${confirmNewPasswordError ? 'border-red-600' : 'border-gray-200'}
-                  text-white text-sh1 font-medium placeholder:font-normal
-                  focus:outline-none focus:border-white focus:border-b-2
-                  focus:placeholder-transparent
-                `}
-              />
+              <div className='relative'>
+                <input
+                  id="confirmNewPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={confirmNewPassword}
+                  onChange={(e) => {
+                    setConfirmNewPassword(e.target.value);
+                    resetAllErrors();
+                  }}
+                  onFocus={() => {
+                    resetAllErrors();
+                  }}
+                  className={`
+                    w-full py-1 border-b-1
+                    ${confirmNewPasswordError ? 'border-red-600' : 'border-gray-200'}
+                    text-white text-sh1 font-medium placeholder:font-normal
+                    focus:outline-none focus:border-white focus:border-b-2
+                    focus:placeholder-transparent
+                  `}
+                />
+                <button
+                  type="button"
+                  onClick={handleClickShowConfirmPassword}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 p-2"
+                >
+                  <Image
+                    src={showConfirmPassword ? Hide : Show} 
+                    alt={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    width={24}
+                    height={24} 
+                  />
+                </button>
+              </div>
               {confirmNewPasswordError && (
                 <p className="text-red-600 text-xs mt-1">{confirmNewPasswordError}</p>
               )}
