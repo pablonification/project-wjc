@@ -4,6 +4,7 @@ import { uploadToCloudinary } from "@/lib/uploadImage";
 import Link from "next/link";
 import Image from 'next/image';
 import { Delete, Edit } from '../../../public/assets/image';
+import { confirmDialog } from "@/lib/confirmDialog";
 
 const initialForm = {
   title: "",
@@ -191,9 +192,10 @@ const BeritaDashboard = () => {
 
   // ------------------------ DELETE NEWS ------------------------
   const handleDelete = async (slug) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus berita ini?")) {
-      try {
-        const res = await fetch(`/api/berita/${slug}`, {
+    const confirmed = await confirmDialog("Apakah Anda yakin ingin menghapus berita ini?");
+    if (!confirmed) return;
+    try {
+      const res = await fetch(`/api/berita/${slug}`, {
           method: "DELETE",
         });
         if (!res.ok) {
@@ -204,7 +206,6 @@ const BeritaDashboard = () => {
       } catch (err) {
         setError(err.message);
       }
-    }
   };
 
   // ------------------------ Helper UI ------------------------

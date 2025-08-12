@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono, Manrope } from "next/font/google";
 import { SessionProvider } from "./context/SessionContext";
+import AlertProvider from "./components/AlertProvider";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -14,10 +15,15 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="id">
+      <head>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} antialiased`}>
-        <SessionProvider>
-          {children}
-        </SessionProvider>
+        <AlertProvider>
+          <SessionProvider>
+            {children}
+          </SessionProvider>
+        </AlertProvider>
       </body>
     </html>
   );

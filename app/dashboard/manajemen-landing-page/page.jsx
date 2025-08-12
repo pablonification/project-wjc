@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '../../components';
 import Image from 'next/image';
 import { upload } from "../../../public/assets/image";
+import { confirmDialog } from "@/lib/confirmDialog";
 
 const ManajemenLandingPage = () => {
   // State hero section
@@ -119,8 +120,8 @@ const ManajemenLandingPage = () => {
   const handleDeleteImage = async (section, publicId) => {
     if (!publicId) return;
     
-    const confirmDelete = window.confirm(`Yakin ingin menghapus gambar ${section}?`);
-    if (!confirmDelete) return;
+    const confirmed = await confirmDialog(`Yakin ingin menghapus gambar ${section}?`);
+    if (!confirmed) return;
 
     try {
       if (section === 'hero') {
