@@ -3,7 +3,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import ChangePasswordClient from './ChangePasswordClient';
-import { Navbar, Footer } from '../../components';
+import { Footer } from '../../components';
 
 export const dynamic = 'force-dynamic'
 

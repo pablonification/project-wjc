@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Navbar, Footer } from "@/app/components";
+import { Footer } from "@/app/components";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -103,7 +103,6 @@ const MyActivitiesPage = () => {
   if (loading) {
     return (
       <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
-        <Navbar />
         <main className="flex-grow bg-black text-white">
           <div className="container mx-auto mt-20 px-4 sm:px-6 lg:px-28 py-16">
             <div className="h-12 w-1/3 bg-gray-700 rounded mb-8 animate-pulse" />
@@ -117,7 +116,6 @@ const MyActivitiesPage = () => {
 
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
-      <Navbar />
       <main className="flex-grow bg-black text-white">
         <div className="container mx-auto mt-20 px-4 sm:px-6 lg:px-28 py-16">
           <h1 className="text-h1 font-bold mb-8">Kegiatan Saya</h1>
@@ -135,7 +133,7 @@ const MyActivitiesPage = () => {
                     <div className="flex-1">
                       <div className="flex items-center mb-2">
                         <span className="font-semibold mr-4">
-                          Registrasi #{reg.id.substring(0, 8)}
+                          Kode: {reg.registrationCode || reg.id.substring(0, 8)}
                         </span>
                         {getStatusBadge(reg.paymentStatus)}
                       </div>
@@ -181,17 +179,14 @@ const MyActivitiesPage = () => {
                         Rp
                         {new Intl.NumberFormat("id-ID").format(reg.totalPrice)}
                       </p>
-                      {reg.paymentStatus === "PENDING" &&
-                        reg.midtransRedirectUrl && (
-                          <a
-                            href={reg.midtransRedirectUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block mt-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm"
-                          >
-                            Lanjutkan Pembayaran
-                          </a>
-                        )}
+                      {reg.paymentStatus === "PENDING" && (
+                        <a
+                          href={`/kegiatan/${reg.activity.slug}/payment/success`}
+                          className="inline-block mt-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm"
+                        >
+                          Instruksi Pembayaran
+                        </a>
+                      )}
                     </div>
                   </div>
                 ))

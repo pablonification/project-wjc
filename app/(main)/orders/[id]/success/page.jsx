@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Navbar, Footer } from "@/app/components";
+import { Footer } from "@/app/components";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -50,6 +50,7 @@ const PaymentSuccessPage = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [waMerch, setWaMerch] = useState("6281234567890");
+  const [bank, setBank] = useState({ bankName: "", bankAccount: "", bankAccountName: "" });
 
   useEffect(() => {
     if (id) {
@@ -80,15 +81,29 @@ const PaymentSuccessPage = () => {
   }, []);
 
   useEffect(() => {
+    const fetchBank = async () => {
+      try {
+        const res = await fetch("/api/admin/settings/bank");
+        if (res.ok) {
+          const data = await res.json();
+          setBank({ bankName: data.bankName || "", bankAccount: data.bankAccount || "", bankAccountName: data.bankAccountName || "" });
+        }
+      } catch (e) {}
+    };
+    fetchBank();
+  }, []);
+
+  useEffect(() => {
     if (order && waMerch) {
       const waMessage = encodeURIComponent(
         `Halo, saya sudah berhasil order merchandise.\n\n` +
-          `Order ID: ${order.id}\n` +
+          `Order Code: ${order.orderCode || '-'}\n` +
           `Nama Produk: ${order.merchandise.name}\n` +
           `Jumlah: ${order.quantity}\n` +
           `Subtotal: Rp${order.subtotal.toLocaleString("id-ID")}\n` +
           `Ongkos Kirim: Rp${order.shippingCost.toLocaleString("id-ID")}\n` +
-          `Total: Rp${order.total.toLocaleString("id-ID")}\n` +
+          `Total Transfer: Rp${order.total.toLocaleString("id-ID")}\n` +
+          `Rekening Tujuan: ${bank.bankName || '-'} ${bank.bankAccount || '-'}${bank.bankAccountName ? ` (${bank.bankAccountName})` : ''}\n` +
           `Metode Pengiriman: ${
             order.shippingMethod === "PICKUP"
               ? "Ambil di Sekretariat"
@@ -97,21 +112,23 @@ const PaymentSuccessPage = () => {
             order.shippingMethod === "DELIVERY" && order.courierService
               ? ` (${order.courierService})`
               : ""
-          }\n` +
-          `Status: ${order.status === "PAID" ? "Dibayar" : order.status}`
+          }\n\n` +
+          `Tata Cara Pembayaran:\n` +
+          `1. Transfer sesuai nominal Total Transfer ke rekening di atas.\n` +
+          `2. Balas pesan ini dengan bukti transfer (screenshot).\n` +
+          `3. Admin akan verifikasi dan update status menjadi PAID.`
       );
       const waLink = `https://wa.me/${waMerch}?text=${waMessage}`;
       const timeout = setTimeout(() => {
         window.location.href = waLink;
-      }, 2000);
+      }, 4000);
       return () => clearTimeout(timeout);
     }
-  }, [order, waMerch]);
+  }, [order, waMerch, bank]);
 
   if (loading) {
     return (
       <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
-        <Navbar />
         <PaymentSuccessPageSkeleton />
         <Footer />
       </div>
@@ -120,7 +137,6 @@ const PaymentSuccessPage = () => {
 
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
-      <Navbar />
       <main className="flex-grow bg-black text-white">
         <div className="container mx-auto mt-20 px-4 sm:px-6 lg:px-28 py-16">
           <div className="max-w-2xl mx-auto text-center">
@@ -140,16 +156,17 @@ const PaymentSuccessPage = () => {
                   />
                 </svg>
               </div>
-              <h1 className="text-h1 font-bold mb-4">Pembayaran Berhasil!</h1>
+              <h1 className="text-h1 font-bold mb-4">Pesanan Dibuat</h1>
               <p className="text-gray-300 text-b1">
-                Terima kasih atas pembelian Anda. Pesanan Anda telah berhasil
-                diproses.
+                Silakan melakukan transfer manual ke rekening berikut, lalu
+                konfirmasi via WhatsApp agar admin dapat memverifikasi pembayaran Anda.
               </p>
             </div>
 
             {order && (
               <div className="bg-gray-900 p-6 rounded-lg mb-8 text-left">
                 <h2 className="text-h3 font-semibold mb-4">Detail Pesanan</h2>
+                <p className="text-sm text-gray-400 mb-2">Kode Pesanan: <span className="font-semibold text-white">{order.orderCode || order.id.substring(0,8)}</span></p>
                 <div className="space-y-4">
                   <div className="flex items-center space-x-4">
                     {order.merchandise.imageUrls &&
@@ -204,7 +221,7 @@ const PaymentSuccessPage = () => {
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-700 pt-4">
+                  <div className="border-t border-gray-700 pt-4 space-y-2">
                     <div className="text-sm text-gray-400">
                       <p>
                         <strong>Metode Pengiriman:</strong>{" "}
@@ -212,16 +229,19 @@ const PaymentSuccessPage = () => {
                           ? "Ambil di Sekretariat"
                           : "Dikirim via Ekspedisi"}
                       </p>
-                      {order.shippingMethod === "DELIVERY" &&
-                        order.courierService && (
-                          <p>
-                            <strong>Ekspedisi:</strong> {order.courierService}
-                          </p>
-                        )}
+                      {order.shippingMethod === "DELIVERY" && order.courierService && (
+                        <p>
+                          <strong>Ekspedisi:</strong> {order.courierService}
+                        </p>
+                      )}
                       <p>
-                        <strong>Status:</strong>{" "}
-                        {order.status === "PAID" ? "Dibayar" : order.status}
+                        <strong>Status:</strong> {order.status}
                       </p>
+                    </div>
+                    <div className="bg-gray-800 p-4 rounded-lg">
+                      <p className="text-white font-semibold">Transfer ke:</p>
+                      <p className="text-white">{bank.bankName || "-"}</p>
+                      <p className="text-white text-lg">{bank.bankAccount || "-"}{bank.bankAccountName ? ` (${bank.bankAccountName})` : ""}</p>
                     </div>
                   </div>
                 </div>
@@ -245,11 +265,11 @@ const PaymentSuccessPage = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                {order && (
+                  {order && (
                   <a
                     href={`https://wa.me/${waMerch}?text=${encodeURIComponent(
                       `Halo, saya sudah berhasil order merchandise.\n\n` +
-                        `Order ID: ${order.id}\n` +
+                        `Order Code: ${order.orderCode || '-'}\n` +
                         `Nama Produk: ${order.merchandise.name}\n` +
                         `Jumlah: ${order.quantity}\n` +
                         `Subtotal: Rp${order.subtotal.toLocaleString(
@@ -258,7 +278,8 @@ const PaymentSuccessPage = () => {
                         `Ongkos Kirim: Rp${order.shippingCost.toLocaleString(
                           "id-ID"
                         )}\n` +
-                        `Total: Rp${order.total.toLocaleString("id-ID")}\n` +
+                        `Total Transfer: Rp${order.total.toLocaleString("id-ID")}\n` +
+                        `Rekening Tujuan: ${bank.bankName || '-'} ${bank.bankAccount || '-'} (${bank.bankAccountName || '-'})\n` +
                         `Metode Pengiriman: ${
                           order.shippingMethod === "PICKUP"
                             ? "Ambil di Sekretariat"
@@ -268,16 +289,17 @@ const PaymentSuccessPage = () => {
                           order.courierService
                             ? ` (${order.courierService})`
                             : ""
-                        }\n` +
-                        `Status: ${
-                          order.status === "PAID" ? "Dibayar" : order.status
-                        }`
+                        }\n\n` +
+                        `Tata Cara Pembayaran:\n` +
+                        `1. Transfer sesuai nominal Total Transfer ke rekening di atas.\n` +
+                        `2. Balas pesan ini dengan bukti transfer (screenshot).\n` +
+                        `3. Admin akan verifikasi dan update status menjadi PAID.`
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg cursor-pointer"
                   >
-                    Konfirmasi Pesanan
+                      Konfirmasi via WhatsApp
                   </a>
                 )}
                 <Link

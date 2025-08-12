@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Navbar, Footer } from "@/app/components";
+import { Footer } from "@/app/components";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -40,7 +40,6 @@ const PaymentFailedPage = () => {
 
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
-      <Navbar />
       <main className="flex-grow bg-black text-white">
         <div className="container mx-auto mt-20 px-4 sm:px-6 lg:px-28 py-16">
           <div className="max-w-2xl mx-auto text-center">
@@ -146,15 +145,6 @@ const PaymentFailedPage = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button
-                  onClick={() =>
-                    (window.location.href = order?.midtransRedirectUrl)
-                  }
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg"
-                  disabled={!order?.midtransRedirectUrl}
-                >
-                  Coba Bayar Lagi
-                </button>
                 <Link
                   href="/merchandise"
                   className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg"

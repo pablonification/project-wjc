@@ -1,14 +1,13 @@
 "use client";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Navbar, Footer } from "../../../components";
+import { Footer } from "../../../components";
 import Image from "next/image";
 import Link from "next/link";
 
 function BeritaDetailSkeleton() {
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
-      <Navbar />
       <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-28 py-16 font-manrope translate-y-28 mb-60 text-white animate-pulse">
         {/* Back link skeleton */}
         <div className="w-32 h-6 bg-gray-700 rounded mb-4" />
@@ -63,7 +62,6 @@ export default function BeritaDetail() {
 
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
-      <Navbar />
       <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-28 py-16 font-manrope translate-y-28 mb-60 text-white">
         <Link href="/berita">
           <div className="flex items-center gap-2 text-sh1 text-gray-200 hover:text-white transition-colors mb-4 cursor-pointer group font-manrope">

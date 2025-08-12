@@ -1,10 +1,9 @@
 // skeleton
-import { Navbar, Footer } from "../../components";
+import { Footer } from "../../components";
 
 export default function ProfileLoading() {
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
-      <Navbar />
       <div className="min-h-screen bg-black flex items-center justify-center px-2 pt-24 pb-12 animate-pulse">
         <div className="flex flex-col items-center w-full max-w-lg p-8 md:p-12">
           <div className="h-9 w-48 bg-gray-700 rounded-md mb-8"></div>

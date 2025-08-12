@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, Fragment } from "react";
-import { Navbar, Footer } from "@/app/components";
+import { Footer } from "@/app/components";
 import {
   getBiteshipCourierCode,
   formatCourierDisplayName,
@@ -235,7 +235,6 @@ const MyOrdersPage = () => {
   if (loading) {
     return (
       <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
-        <Navbar />
         <main className="flex-grow bg-black text-white">
           <div className="container mx-auto mt-20 px-4 sm:px-6 lg:px-28 py-16">
             <div className="h-12 w-1/3 bg-gray-700 rounded mb-8 animate-pulse" />
@@ -250,7 +249,6 @@ const MyOrdersPage = () => {
   return (
     <Fragment>
       <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
-        <Navbar />
         <main className="flex-grow bg-black text-white">
           <div className="container mx-auto mt-20 px-4 sm:px-6 lg:px-28 py-16">
             <h1 className="text-h1 font-bold mb-8">Pesanan Saya</h1>
@@ -266,7 +264,7 @@ const MyOrdersPage = () => {
                         <div className="flex-1">
                           <div className="flex items-center mb-2">
                             <span className="font-semibold mr-4 text-sm">
-                              Order #{order.id.substring(0, 8)}
+                              Kode: {order.orderCode || order.id.substring(0, 8)}
                             </span>
                             {getStatusBadge(order.status)}
                           </div>
@@ -308,17 +306,14 @@ const MyOrdersPage = () => {
                           </p>
 
                           <div className="flex flex-col items-start md:items-end gap-2">
-                            {order.status === "PENDING" &&
-                              order.midtransRedirectUrl && (
-                                <a
-                                  href={order.midtransRedirectUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="w-full md:w-auto text-center bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm"
-                                >
-                                  Bayar Sekarang
-                                </a>
-                              )}
+                            {order.status === "PENDING" && (
+                              <a
+                                href={`/orders/${order.id}/success`}
+                                className="w-full md:w-auto text-center bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm"
+                              >
+                                Instruksi Pembayaran
+                              </a>
+                            )}
                             {order.status === "SHIPPING" && order.resi && (
                               <button
                                 onClick={() => handleTrackOrder(order)}

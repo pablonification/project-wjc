@@ -6,9 +6,11 @@ const ActivityRegistrationsDashboard = () => {
   const [allRegistrations, setAllRegistrations] = useState([]);
   const [filteredRegistrations, setFilteredRegistrations] = useState([]);
   const [activities, setActivities] = useState([]);
+  const [searchCode, setSearchCode] = useState("");
   const [selectedActivity, setSelectedActivity] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editState, setEditState] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,17 +39,17 @@ const ActivityRegistrationsDashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedActivity === "all") {
-      setFilteredRegistrations(allRegistrations);
-    } else {
-      setFilteredRegistrations(
-        allRegistrations.filter((reg) => reg.activity.id === selectedActivity)
-      );
+    let base = selectedActivity === "all" ? allRegistrations : allRegistrations.filter((reg) => reg.activity.id === selectedActivity);
+    if (searchCode.trim()) {
+      const q = searchCode.trim();
+      base = base.filter((reg) => (reg.registrationCode || "").includes(q));
     }
-  }, [selectedActivity, allRegistrations]);
+    setFilteredRegistrations(base);
+  }, [selectedActivity, allRegistrations, searchCode]);
 
   const handleExport = () => {
     const dataToExport = filteredRegistrations.map((reg) => ({
+      "Kode Pendaftaran": reg.registrationCode || '',
       "ID Pendaftaran": reg.id,
       "Tanggal Daftar": new Date(reg.createdAt).toLocaleString("id-ID"),
       "Nama Kegiatan": reg.activity.title,
@@ -97,8 +99,8 @@ const ActivityRegistrationsDashboard = () => {
       <div className="max-w-6xl bg-[#141415] p-4">
         <h1 className="text-h2 text-white mb-8">Pendaftaran Kegiatan</h1>
         <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
-          {/* Filter + Export */}
-          <div className="flex items-center gap-4">
+          {/* Filter + Search + Export + Backfill */}
+          <div className="flex items-center gap-4 flex-wrap">
             <div className="relative">
               <select
                 value={selectedActivity}
@@ -122,6 +124,13 @@ const ActivityRegistrationsDashboard = () => {
                 </svg>
               </span>
             </div>
+            <input
+              type="text"
+              value={searchCode}
+              onChange={(e) => setSearchCode(e.target.value)}
+              placeholder="Cari Kode Pendaftaran (5 digit)"
+              className="w-[240px] bg-[#222225] text-white font-semibold rounded-lg px-4 py-2 outline-none border border-[#65666B] focus:border-[#C4A254]"
+            />
             <button
               onClick={handleExport}
               disabled={filteredRegistrations.length === 0}
@@ -133,39 +142,80 @@ const ActivityRegistrationsDashboard = () => {
         </div>
         <h2 className="block text-b2 text-[#B3B4B6] mb-2">Daftar Nomor</h2>
         <div className="w-full overflow-x-auto bg-[#141415]">
-          <div className="min-w-[1100px] grid grid-cols-6 text-[#B3B4B6] bg-[#1E1E20] rounded-sm py-2 px-3 mb-2 font-medium">
+          <div className="min-w-[1100px] grid grid-cols-7 text-[#B3B4B6] bg-[#1E1E20] rounded-sm py-1.5 px-3 mb-2 font-medium text-xs">
+            <p>Kode</p>
             <p>Kegiatan</p>
             <p>Peserta</p>
-            <p>Detail</p>
             <p>Total</p>
             <p>Tanggal</p>
-            <p className="text-right">Status</p>
+            <p>Status</p>
+            <p className="text-left">Aksi</p>
           </div>
           {filteredRegistrations.length > 0 ? (
             <ul className="min-w-[1100px]">
               {filteredRegistrations.map((reg) => (
-                <li key={reg.id} className="grid grid-cols-6 py-3 px-3 items-center border-b border-[#222225] last:border-none">
+                <li key={reg.id} className="grid grid-cols-7 py-2.5 px-3 items-center border-b border-[#222225] last:border-none text-xs">
+                  {/* Kode */}
+                  <span className="text-white font-semibold">{reg.registrationCode || '-'}</span>
                   {/* Kegiatan */}
-                  <span className="text-white font-medium">{reg.activity.title}</span>
+                  <span className="text-white font-medium truncate max-w-[220px]">{reg.activity.title}</span>
                   {/* Peserta */}
-                  <span className="text-white">
-                    {reg.user.name}
+                  <span className="text-white truncate max-w-[220px]">
+                    <span className="font-semibold">{reg.user.name}</span>
                     <br />
-                    <span className="text-[#B3B4B6] text-sm">{reg.user.phoneNumber}</span>
-                  </span>
-                  {/* Detail */}
-                  <span className="text-white text-sm">
-                    Kaos: {reg.tshirtSize}<br />
-                    Penginapan: {reg.needAccommodation ? `Ya${reg.roomType ? ` (${reg.roomType})` : ''}` : 'Tidak'}
+                    <span className="text-[#B3B4B6]">{reg.user.phoneNumber}</span>
                   </span>
                   {/* Total */}
                   <span className="text-white font-semibold">
                     {reg.totalPrice ? `Rp ${new Intl.NumberFormat("id-ID").format(reg.totalPrice)}` : "-"}
                   </span>
                   {/* Tanggal */}
-                  <span className="text-white text-sm">{new Date(reg.createdAt).toLocaleDateString("id-ID")}</span>
-                  {/* Status */}
-                  <span className="flex justify-end">{getStatusBadge(reg.paymentStatus)}</span>
+                  <span className="text-white">{new Date(reg.createdAt).toLocaleDateString("id-ID")}</span>
+                  {/* Status dropdown */}
+                  <span>
+                    <select
+                      value={editState[reg.id]?.paymentStatus ?? reg.paymentStatus}
+                      onChange={(e) =>
+                        setEditState((prev) => ({
+                          ...prev,
+                          [reg.id]: { ...(prev[reg.id] || {}), paymentStatus: e.target.value },
+                        }))
+                      }
+                      className="border border-[#B3B4B6] bg-[#141415] text-white px-2 py-1 rounded-md text-xs focus:border-[#C4A254] outline-none"
+                    >
+                      <option value="PENDING">PENDING</option>
+                      <option value="PAID">PAID</option>
+                      <option value="FAILED">FAILED</option>
+                      <option value="CANCELLED">CANCELLED</option>
+                    </select>
+                  </span>
+                  {/* Aksi: Simpan */}
+                  <span className="flex">
+                    <button
+                      onClick={async () => {
+                        const newStatus = editState[reg.id]?.paymentStatus ?? reg.paymentStatus;
+                        if (newStatus === reg.paymentStatus) return; // nothing to save
+                        setEditState((prev) => ({ ...(prev || {}), [reg.id]: { ...(prev[reg.id] || {}), saving: true } }));
+                        const res = await fetch(`/api/admin/activity-registrations/${reg.id}`, {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ paymentStatus: newStatus })
+                        });
+                        if (res.ok) {
+                          const updated = await res.json();
+                          setAllRegistrations(prev => prev.map(r => r.id === reg.id ? updated : r));
+                          setEditState((prev) => ({ ...(prev || {}), [reg.id]: { ...prev[reg.id], saving: false } }));
+                        } else {
+                          alert('Gagal update status');
+                          setEditState((prev) => ({ ...(prev || {}), [reg.id]: { ...prev[reg.id], saving: false } }));
+                        }
+                      }}
+                      className="px-3 py-1 bg-[#65666B] text-white rounded-md text-xs hover:bg-[#777] disabled:opacity-60 cursor-pointer"
+                      disabled={editState[reg.id]?.saving}
+                    >
+                      {editState[reg.id]?.saving ? '...' : 'Simpan'}
+                    </button>
+                  </span>
                 </li>
               ))}
             </ul>
