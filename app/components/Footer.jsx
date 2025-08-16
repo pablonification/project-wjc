@@ -5,13 +5,13 @@ const Footer = () => {
   return (
     <footer className="p-6 flex flex-col items-center gap-2 bg-black border-t-2 border-gray-700">
       <div className="flex gap-2">
-        <a href="">
+        <a href="https://www.instagram.com/meddocs_wjc/">
           <Image src={Instagram} alt="instagram" />
         </a>
-        <a href="">
+        <a href="https://www.instagram.com/meddocs_wjc/">
           <Image src={Facebook} alt="facebook" />
         </a>
-        <a href="">
+        <a href="https://www.instagram.com/meddocs_wjc/">
           <Image src={Youtube} alt="youtube" />
         </a>
       </div>
