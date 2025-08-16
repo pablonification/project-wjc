@@ -41,6 +41,7 @@ model Whitelist {
   // Field untuk menyimpan kapan data ini dibuat.
   // @default(now()) akan otomatis mengisi field ini dengan waktu saat ini ketika data baru dibuat.
   createdAt   DateTime @default(now())
+  lastOtpRequestAt DateTime?
   user        User?
 }
 
@@ -73,6 +74,7 @@ model User {
   addresses       Address[]
   orders          Order[]
   activityRegistrations ActivityRegistration[]
+  lastOtpRequestAt DateTime?
 }
 
 // Tambahan enum status untuk kegiatan

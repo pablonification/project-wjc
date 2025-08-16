@@ -1,44 +1,34 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import crypto from 'crypto';
 
-import { parsePhoneNumberFromString } from 'libphonenumber-js';
+const customerId = process.env.MC_CUSTOMER_ID;
+const authToken = process.env.MC_AUTH_TOKEN;
 
 export async function POST(request) {
+  if (!customerId || !authToken) {
+    console.error("Kesalahan Konfigurasi: Variabel lingkungan MessageCentral tidak diatur.");
+    return NextResponse.json({ message: 'Konfigurasi server tidak lengkap.' }, { status: 500 });
+  }
+
   try {
-    const { phoneNumber: rawPhoneNumber, otp } = await request.json();
-    if (!rawPhoneNumber || !otp) {
-      return NextResponse.json({ message: 'Data tidak lengkap.' }, { status: 400 });
+    const { otp, verificationId } = await request.json();
+    if (!otp || !verificationId) {
+      return NextResponse.json({ message: 'Data tidak lengkap. OTP dan ID verifikasi wajib diisi.' }, { status: 400 });
     }
+    
+    const mcUrl = `https://cpaas.messagecentral.com/verification/v3/validateOtp?verificationId=${verificationId}&customerId=${customerId}&code=${otp}`;
 
-    const phoneNumberObj = parsePhoneNumberFromString(rawPhoneNumber, 'ID');
-    if (!phoneNumberObj || !phoneNumberObj.isValid()) {
-        return NextResponse.json({ message: 'Format nomor telepon tidak valid.' }, { status: 400 });
-    }
-    const normalizedPhoneNumber = phoneNumberObj.format('E.164'); // Format: +62...
-
-    // Cari OTP terakhir untuk nomor telp yg request
-    const otpEntry = await prisma.otp.findFirst({
-      where: { phoneNumber: normalizedPhoneNumber },
-      orderBy: { createdAt: 'desc' },
+    const mcResponse = await fetch(mcUrl, {
+      method: 'GET',
+      headers: { 'authToken': authToken },
     });
 
-    // Cek  OTP ada dan belum kedaluwarsa
-    if (!otpEntry || new Date() > otpEntry.expires) {
-      return NextResponse.json({ message: 'Kode OTP salah atau sudah kedaluwarsa.' }, { status: 400 });
+    const responseData = await mcResponse.json();
+
+    if (!mcResponse.ok || responseData.responseCode !== 200) {
+        console.error("Gagal validasi OTP dari MessageCentral:", responseData);
+        const errorMessage = responseData.message || 'Kode OTP salah atau sudah kedaluwarsa.';
+        return NextResponse.json({ message: "Kode OTP Salah!" }, { status: 400 }); // Selalu kirim status 400 untuk error OTP
     }
-
-    // Verifikasi hash OTP
-    const [storedHash] = otpEntry.token.split('.');
-    const secret = process.env.OTP_SECRET;
-    const hash = crypto.createHmac('sha256', secret).update(otp).digest('hex');
-
-    if (hash !== storedHash) {
-      return NextResponse.json({ message: 'Kode OTP salah.' }, { status: 400 });
-    }
-
-    // Hapus otp setelah dipakai
-    await prisma.otp.delete({ where: { id: otpEntry.id } });
 
     return NextResponse.json({ message: 'Verifikasi berhasil.' }, { status: 200 });
 
