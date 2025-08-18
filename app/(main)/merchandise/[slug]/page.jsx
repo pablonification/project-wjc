@@ -138,7 +138,7 @@ const DetailMerchandise = () => {
                     src={activeImage}
                     alt={product.name}
                     fill
-                    className="object-cover"
+                    className="object-contain"
                   />
                 )}
               </div>

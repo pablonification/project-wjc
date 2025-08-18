@@ -314,14 +314,14 @@ const MyOrdersPage = () => {
                                 Instruksi Pembayaran
                               </a>
                             )}
-                            {order.status === "SHIPPING" && order.resi && (
+                            {/* {order.status === "SHIPPING" && order.resi && (
                               <button
                                 onClick={() => handleTrackOrder(order)}
                                 className="w-full md:w-auto text-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm cursor-pointer"
                               >
                                 Lacak
                               </button>
-                            )}
+                            )} */}
                             {order.status === "SHIPPING" && (
                               <button
                                 onClick={() => handleConfirmReceived(order.id)}

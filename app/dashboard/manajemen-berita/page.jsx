@@ -301,7 +301,7 @@ const BeritaDashboard = () => {
                 </div>
               ))}
               {/* Placeholder boxes */}
-              {Array.from({ length: 3 - attachments.length }).map((_, idx) => (
+              {Array.from({ length: 1 - attachments.length }).map((_, idx) => (
                 <div
                   key={idx + attachments.length}
                   className="w-[70px] h-[70px] bg-white rounded-md flex items-center justify-center"

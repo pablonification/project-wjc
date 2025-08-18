@@ -20,7 +20,7 @@ async function getLandingPageContent() {
     return {
       heroTitle: "Selamat datang teman-teman MedDocs WJC!",
       heroDescription: "Lorem ipsum dolor sit amet consectetur. Aliquam aliquam in faucibus pretium sit habitant vitae sollicitudin. Lobortis nisl tristique suscipit urna nullam.",
-      heroButton: "Call to Action",
+      heroButton: "Bergabung Dengan Kami",
       heroImageUrl: null,
       tentangTitle: "Kami adalah MedDocs WJC Dago",
       tentangDescription: "Lorem ipsum dolor sit amet consectetur. Rhoncus fringilla ipsum tellus semper a eget malesuada. Pulvinar pellentesque urna nunc quis in facilisi est fermentum. Arcu sed quis consectetur risus risus neque vestibulum massa cras. Malesuada ullamcorper non ac gravida aliquam enim nam morbi neque.",
