@@ -98,7 +98,7 @@ const ActivityRegistrationsDashboard = () => {
         <h1 className="text-h2 text-white mb-8">Pendaftaran Kegiatan</h1>
         <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
           {/* Filter + Export */}
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col md:flex-row gap-3">
             <div className="relative">
               <select
                 value={selectedActivity}
