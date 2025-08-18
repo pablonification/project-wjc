@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation';
 
 const RegisterPage = () => {
   const router = useRouter();
-
   // State untuk data registrasi
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
@@ -21,7 +20,6 @@ const RegisterPage = () => {
   const [ktpPreview, setKtpPreview] = useState('');
   const [showKtpModal, setShowKtpModal] = useState(false);
   const [ktpPublicId, setKtpPublicId] = useState('');
-
   const [phoneNumberError, setPhoneNumberError] = useState('');
   const [otpError, setOtpError] = useState('');
   const [nameError, setNameError] = useState('');
@@ -30,8 +28,7 @@ const RegisterPage = () => {
   const [passwordError, setPasswordError] = useState('');
   const [ktpError, setKtpError] = useState('');
 
-  // State untuk mengelola 4 kotak OTP
-  const [otpDigits, setOtpDigits] = useState(Array(4).fill(''));
+  const [otpDigits, setOtpDigits] = useState(Array(6).fill(''));
   const otpInputRefs = useRef([]);
 
   // State untuk flow & UI
@@ -40,12 +37,9 @@ const RegisterPage = () => {
   const [generalError, setGeneralError] = useState('');
   const [resendOtpMessage, setResendOtpMessage] = useState('');
   const [isResendingOtp, setIsResendingOtp] = useState(false);
-  const [verificationId, setVerificationId] = useState(null);
-
-  // State untuk Cooldown
   const [cooldown, setCooldown] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
 
-  // useEffect untuk timer cooldown
   useEffect(() => {
     let timer;
     if (cooldown > 0) {
@@ -54,7 +48,6 @@ const RegisterPage = () => {
     return () => clearTimeout(timer);
   }, [cooldown]);
 
-  const [showPassword, setShowPassword] = useState(false);
   const handleClickShowPassword = () => setShowPassword(!showPassword);
 
   const resetAllErrors = () => {
@@ -72,7 +65,6 @@ const RegisterPage = () => {
     setOtp(otpDigits.join(''));
   }, [otpDigits]);
 
-  // Fungsi gabungan untuk meminta dan mengirim ulang OTP
   const handleRequestOtp = async (e, isResend = false) => {
     if (e) e.preventDefault();
     
@@ -106,7 +98,6 @@ const RegisterPage = () => {
         throw new Error(errorMessage);
       }
       
-      setVerificationId(data.verificationId);
       setCooldown(60);
 
       if (isResend) {
@@ -128,14 +119,13 @@ const RegisterPage = () => {
     }
   };
 
-  // handle verifikasi OTP
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     resetAllErrors();
 
-    if (otp.length !== 4) {
-      setOtpError('Kode OTP harus 4 digit.');
+    if (otp.length !== 6) {
+      setOtpError('Kode OTP harus 6 digit.');
       setIsLoading(false);
       return;
     }
@@ -144,7 +134,7 @@ const RegisterPage = () => {
       const response = await fetch('/api/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ otp, verificationId }),
+        body: JSON.stringify({ phoneNumber, otp }),
       });
       const data = await response.json();
 
@@ -162,7 +152,6 @@ const RegisterPage = () => {
     }
   };
 
-
   const handleKtpUpload = async (file) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -170,10 +159,7 @@ const RegisterPage = () => {
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
-    const res = await fetch(url, {
-      method: 'POST',
-      body: formData,
-    });
+    const res = await fetch(url, { method: 'POST', body: formData });
     const data = await res.json();
     if (data.secure_url && data.public_id) {
       setKtpPublicId(data.public_id);
@@ -187,7 +173,6 @@ const RegisterPage = () => {
     setIsLoading(true);
     resetAllErrors();
 
-    // Validasi input frontend
     if (!name || !nickname || !chapter || !password || (!ktpFile && !ktpUrl)) {
       if (!name) setNameError('Nama Lengkap wajib diisi.');
       if (!nickname) setNicknameError('Nama Panggilan wajib diisi.');
@@ -213,15 +198,7 @@ const RegisterPage = () => {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          nickname,
-          chapter,
-          password,
-          phoneNumber,
-          ktpUrl: uploadedKtpUrl,
-          ktpPublicId: uploadedKtpPublicId,
-        }),
+        body: JSON.stringify({ name, nickname, chapter, password, phoneNumber, ktpUrl: uploadedKtpUrl, ktpPublicId: uploadedKtpPublicId }),
       });
 
       if (!response.ok) {
@@ -229,14 +206,14 @@ const RegisterPage = () => {
         throw new Error(errorData.message || `Terjadi error: ${response.status}`);
       }
       
-      alert('Registrasi berhasil! Anda akan dialihkan ke halaman login.');
-
-      router.push('/login');
+      setTimeout(() => {
+        router.push('/login');
+      }, 1500);
 
     } catch (err) {
       setGeneralError(err.message || 'Terjadi kesalahan saat pendaftaran.');
     } finally {
-      setIsLoading(false);
+      // setIsLoading(false); 
     }
   };
 
@@ -246,7 +223,7 @@ const RegisterPage = () => {
     newOtpDigits[index] = newDigit;
     setOtpDigits(newOtpDigits);
     resetAllErrors();
-    if (newDigit && index < 3) {
+    if (newDigit && index < 5) {
       otpInputRefs.current[index + 1]?.focus();
     }
   };
@@ -260,13 +237,13 @@ const RegisterPage = () => {
   const handleOtpPaste = (e) => {
     e.preventDefault();
     const pasteData = e.clipboardData.getData('text/plain').trim();
-    if (pasteData.length === 4 && /^\d{4}$/.test(pasteData)) {
+    if (pasteData.length === 6 && /^\d{6}$/.test(pasteData)) {
       const newOtpDigits = pasteData.split('');
       setOtpDigits(newOtpDigits);
       resetAllErrors();
-      otpInputRefs.current[3]?.focus();
+      otpInputRefs.current[5]?.focus();
     } else {
-      setOtpError('Format OTP tidak valid. Harap masukkan 4 digit angka.');
+      setOtpError('Format OTP tidak valid. Harap masukkan 6 digit angka.');
     }
   };
 
@@ -275,119 +252,50 @@ const RegisterPage = () => {
       <div className="flex flex-col items-center max-w-2xl p-12 rounded-xl shadow-lg">
         {currentStep !== 'verify_otp' && (
           <>
-            <Image
-              src={MedDocs}
-              alt="logo"
-              width={100}
-              height={100}
-              className="mb-4"
-            />
-            <h1 className="text-[32px] md:text-display font-medium text-center text-white mb-6">
-              Daftar ke MedDocs WJC
-            </h1>
+            <Image src={MedDocs} alt="logo" width={100} height={100} className="mb-4" />
+            <h1 className="text-[32px] md:text-display font-medium text-center text-white mb-6">Daftar ke MedDocs WJC</h1>
           </>
         )}
 
-        {/* Input Nomor Telepon */}
         {currentStep === 'input_phone' && (
           <form onSubmit={handleRequestOtp} className="flex flex-col gap-4 w-full">
             <div>
-              <label htmlFor="phoneNumber" className="block text-b1 text-white mb-1">
-                Nomor Telepon
-              </label>
-              <input
-                id="phoneNumber"
-                type="tel"
-                value={phoneNumber}
-                onChange={(e) => {
-                  setPhoneNumber(e.target.value);
-                  resetAllErrors();
-                }}
-                onFocus={resetAllErrors}
-                placeholder="08123456789"
-                required
-                className={`w-full bg-transparent py-1 border-b-1 ${phoneNumberError ? 'border-red-600' : 'border-gray-200'} text-white text-sh1 font-medium placeholder:font-normal focus:outline-none focus:border-white focus:border-b-2 focus:placeholder-transparent`}
-              />
-              {phoneNumberError && (
-                <p className="text-red-500 text-xs mt-1">{phoneNumberError}</p>
-              )}
+              <label htmlFor="phoneNumber" className="block text-b1 text-white mb-1">Nomor Telepon</label>
+              <input id="phoneNumber" type="tel" value={phoneNumber} onChange={(e) => { setPhoneNumber(e.target.value); resetAllErrors(); }} onFocus={resetAllErrors} placeholder="08123456789" required className={`w-full bg-transparent py-1 border-b-1 ${phoneNumberError ? 'border-red-600' : 'border-gray-200'} text-white text-sh1 font-medium placeholder:font-normal focus:outline-none focus:border-white focus:border-b-2 focus:placeholder-transparent`} />
+              {phoneNumberError && (<p className="text-red-500 text-xs mt-1">{phoneNumberError}</p>)}
             </div>
-            <Button
-              type="submit"
-              label="Kirim Kode OTP"
-              isLoading={isLoading}
-              disabled={isLoading}
-            />
+            <Button type="submit" label="Kirim Kode OTP" isLoading={isLoading} disabled={isLoading} />
           </form>
         )}
 
-        {/* Verifikasi OTP */}
         {currentStep === 'verify_otp' && (
           <form onSubmit={handleVerifyOtp} className="flex flex-col items-stretch justify-center w-full max-w-md mx-auto gap-6 pt-24">
             <h2 className="text-h2 md:text-h1 font-semibold text-center text-white mb-4 leading-snug">
-              Masukkan Kode 4-Digit yang<br />dikirim ke {phoneNumber}
+              Masukkan Kode 6-Digit yang<br />dikirim ke {phoneNumber}
             </h2>
-            <div className="flex justify-center gap-4 mb-2">
+            <div className="flex justify-center gap-2 md:gap-4 mb-2">
               {otpDigits.map((digit, index) => (
-                <input
-                  key={index}
-                  id={`otp-${index}`}
-                  type="text"
-                  maxLength="1"
-                  value={digit}
-                  onChange={(e) => handleOtpChange(index, e.target.value)}
-                  onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                  onFocus={resetAllErrors}
-                  onPaste={index === 0 ? handleOtpPaste : undefined}
-                  ref={(el) => (otpInputRefs.current[index] = el)}
-                  className={`w-14 h-14 text-center text-white text-2xl font-medium tracking-widest border border-white bg-transparent ${otpError ? 'border-red-600' : 'border-white'} focus:outline-none focus:border-red-500 transition-all`}
-                  style={{ caretColor: 'white', boxShadow: 'none' }}
-                />
+                <input key={index} id={`otp-${index}`} type="text" maxLength="1" value={digit} onChange={(e) => handleOtpChange(index, e.target.value)} onKeyDown={(e) => handleOtpKeyDown(index, e)} onFocus={resetAllErrors} onPaste={index === 0 ? handleOtpPaste : undefined} ref={(el) => (otpInputRefs.current[index] = el)} className={`w-12 h-12 md:w-14 md:h-14 text-center text-white text-2xl font-medium tracking-widest border border-white bg-transparent ${otpError ? 'border-red-600' : 'border-white'} focus:outline-none focus:border-red-500 transition-all`} style={{ caretColor: 'white', boxShadow: 'none' }} />
               ))}
             </div>
-            {otpError && (
-              <p className="text-red-500 text-xs mt-1 text-center">{otpError}</p>
-            )}
-
-            {/* Tombol Kirim Ulang dengan Cooldown */}
-            <button
-              type="button"
-              onClick={() => handleRequestOtp(null, true)}
-              disabled={isLoading || isResendingOtp || cooldown > 0}
-              className="text-gray-300 text-sm mb-2 hover:text-white underline disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {isResendingOtp 
-                ? 'Mengirim ulang...' 
-                : cooldown > 0 
-                  ? `Kirim ulang dalam ${cooldown} detik` 
-                  : 'Kirim ulang kode'
-              }
+            {otpError && (<p className="text-red-500 text-xs mt-1 text-center">{otpError}</p>)}
+            <button type="button" onClick={() => handleRequestOtp(null, true)} disabled={isLoading || isResendingOtp || cooldown > 0} className="text-gray-300 text-sm mb-2 hover:text-white underline disabled:opacity-60 disabled:cursor-not-allowed">
+              {isResendingOtp ? 'Mengirim ulang...' : cooldown > 0 ? `Kirim ulang dalam ${cooldown} detik` : 'Kirim ulang kode'}
             </button>
-
-            {resendOtpMessage && (
-              <p className={`text-xs text-center mb-1 ${resendOtpMessage.includes('berhasil') ? 'text-green-400' : 'text-red-500'}`}>{resendOtpMessage}</p>
-            )}
-            <Button
-              type="submit"
-              label="Daftar"
-              isLoading={isLoading}
-              disabled={isLoading}
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-md mt-2"
-            />
+            {resendOtpMessage && (<p className={`text-xs text-center mb-1 ${resendOtpMessage.includes('berhasil') ? 'text-green-400' : 'text-red-500'}`}>{resendOtpMessage}</p>)}
+            <Button type="submit" label="Daftar" isLoading={isLoading} disabled={isLoading} className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-md mt-2" />
             <p className="text-center text-b2 text-gray-200 mt-8">
               Sudah punya akun?{' '}
-              <a href="/login" className="font-medium text-white hover:text-red-600 underline">
-                Login
-              </a>
+              <a href="/login" className="font-medium text-white hover:text-red-600 underline">Login</a>
             </p>
           </form>
         )}
 
-        {/* 'fill_details' */}
         {currentStep === 'fill_details' && (
           <form onSubmit={handleRegister} className="flex flex-col gap-4 w-full">
             <h2 className="text-xl font-bold text-center text-white mb-2">Lengkapi Data Diri</h2>
             <p className="text-center text-gray-200 mb-6">Satu langkah terakhir untuk menyelesaikan pendaftaran.</p>
+            {generalError && <p className="text-red-500 text-sm text-center mb-4">{generalError}</p>}
             <div>
               <label htmlFor="name" className="block text-b1 text-white mb-1">Nama Lengkap</label>
               <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} onFocus={resetAllErrors} className={`w-full bg-transparent py-1 border-b-1 ${nameError ? 'border-red-600' : 'border-gray-200'} text-white text-sh1 font-medium focus:outline-none focus:border-white focus:border-b-2`} />
