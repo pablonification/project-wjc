@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Navbar, Footer } from "@/app/components";
+import { Footer } from "@/app/components";
 import Image from "next/image";
 
 const CheckoutPageSkeleton = () => (
@@ -275,11 +275,7 @@ const CheckoutPage = () => {
 
       if (res.ok) {
         const order = await res.json();
-        if (order.midtransRedirectUrl) {
-          window.location.href = order.midtransRedirectUrl;
-        } else {
-          router.push(`/orders/${order.id}/success`);
-        }
+        router.push(`/orders/${order.id}/success`);
       } else {
         throw new Error("Failed to create order");
       }
@@ -298,7 +294,6 @@ const CheckoutPage = () => {
   if (loading) {
     return (
         <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
-            <Navbar />
             <CheckoutPageSkeleton />
             <Footer />
         </div>
@@ -348,7 +343,6 @@ const CheckoutPage = () => {
 
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
-      <Navbar />
       <main className="flex-grow bg-black text-white">
         <div className="container mx-auto mt-20 px-4 sm:px-6 lg:px-28 py-16">
           <h1 className="text-h1 font-bold mb-8">Checkout</h1>

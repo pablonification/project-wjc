@@ -10,13 +10,17 @@ const OrdersDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editState, setEditState] = useState({});
+  const [bank, setBank] = useState({ bankName: "", bankAccount: "", bankAccountName: "" });
+  const [savingBank, setSavingBank] = useState(false);
+  const [searchCode, setSearchCode] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [ordersRes, merchRes] = await Promise.all([
+        const [ordersRes, merchRes, bankRes] = await Promise.all([
           fetch('/api/admin/orders'),
-          fetch('/api/merchandise')
+          fetch('/api/merchandise'),
+          fetch('/api/admin/settings/bank')
         ]);
 
         if (!ordersRes.ok) throw new Error('Gagal mengambil data pesanan');
@@ -24,10 +28,12 @@ const OrdersDashboard = () => {
 
         const ordersData = await ordersRes.json();
         const merchData = await merchRes.json();
+        const bankData = bankRes.ok ? await bankRes.json() : {};
         
         setAllOrders(ordersData);
         setFilteredOrders(ordersData);
         setMerchandise(merchData);
+        setBank({ bankName: bankData.bankName || "", bankAccount: bankData.bankAccount || "", bankAccountName: bankData.bankAccountName || "" });
       } catch (err) {
         setError(err.message);
       } finally {
@@ -38,17 +44,17 @@ const OrdersDashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedMerch === "all") {
-      setFilteredOrders(allOrders);
-    } else {
-      setFilteredOrders(
-        allOrders.filter((order) => order.merchandiseId === selectedMerch)
-      );
+    let base = selectedMerch === "all" ? allOrders : allOrders.filter(o => o.merchandiseId === selectedMerch);
+    if (searchCode.trim()) {
+      const q = searchCode.trim();
+      base = base.filter(o => (o.orderCode || "").includes(q));
     }
-  }, [selectedMerch, allOrders]);
+    setFilteredOrders(base);
+  }, [selectedMerch, allOrders, searchCode]);
 
   const handleExport = () => {
     const dataToExport = filteredOrders.map(order => ({
+      "Order Code": order.orderCode || '',
       "Order ID": order.id,
       "Tanggal": new Date(order.createdAt).toLocaleString('id-ID'),
       "Nama Pembeli": order.user?.name,
@@ -97,6 +103,25 @@ const OrdersDashboard = () => {
 
   const statusOptions = ["PENDING", "PAID", "SHIPPING", "COMPLETED", "CANCELLED"];
 
+  const saveBankSettings = async () => {
+    try {
+      setSavingBank(true);
+      const res = await fetch('/api/admin/settings/bank', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bankName: bank.bankName, bankAccount: bank.bankAccount, bankAccountName: bank.bankAccountName })
+      });
+      if (!res.ok) throw new Error('Gagal menyimpan pengaturan bank');
+      const data = await res.json();
+      setBank({ bankName: data.bankName, bankAccount: data.bankAccount, bankAccountName: data.bankAccountName });
+      alert('Pengaturan bank disimpan');
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setSavingBank(false);
+    }
+  };
+
   if (loading) return (
       <div className="flex justify-center items-center h-screen">
         <div className="w-8 h-8 rounded-full border-4 border-white border-t-transparent animate-spin"></div>
@@ -109,8 +134,9 @@ const OrdersDashboard = () => {
       <div className="max-w-7xl p-4 rounded-xl shadow-md">
         <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
           <h1 className="text-h2">Manajemen Pesanan</h1>
-          <div className="flex flex-col md:flex-row gap-3">
-            <div className="relative">
+
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="relative w-[260px]">
               <select
                 value={selectedMerch}
                 onChange={(e) => setSelectedMerch(e.target.value)}
@@ -133,6 +159,13 @@ const OrdersDashboard = () => {
                 </svg>
               </span>
             </div>
+            <input
+              type="text"
+              value={searchCode}
+              onChange={(e) => setSearchCode(e.target.value)}
+              placeholder="Cari Kode (5 digit)"
+              className="w-[200px] bg-[#222225] text-white font-semibold rounded-lg px-4 py-2 outline-none border border-[#65666B] focus:border-[#C4A254]"
+            />
             <button
               onClick={handleExport}
               disabled={filteredOrders.length === 0}
@@ -143,10 +176,46 @@ const OrdersDashboard = () => {
           </div>
         </div>
 
+        {/* Bank settings for manual transfer */}
+        <div className="bg-[#1E1E20] rounded-md p-4 mb-6">
+          <h2 className="text-lg font-semibold mb-3">Pengaturan Rekening Bank</h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <input
+              type="text"
+              placeholder="Nama Bank (mis. BCA, BNI)"
+              value={bank.bankName}
+              onChange={e => setBank(prev => ({ ...prev, bankName: e.target.value }))}
+              className="border border-[#B3B4B6] bg-[#141415] text-white px-3 py-2 rounded-md text-sm outline-none"
+            />
+            <input
+              type="text"
+              placeholder="Nomor Rekening"
+              value={bank.bankAccount}
+              onChange={e => setBank(prev => ({ ...prev, bankAccount: e.target.value }))}
+              className="border border-[#B3B4B6] bg-[#141415] text-white px-3 py-2 rounded-md text-sm outline-none"
+            />
+            <input 
+              type="text"
+              placeholder="Atas Nama"
+              value={bank.bankAccountName}
+              onChange={e => setBank(prev => ({ ...prev, bankAccountName: e.target.value }))}
+              className="border border-[#B3B4B6] bg-[#141415] text-white px-3 py-2 rounded-md text-sm outline-none"
+            />
+            <button
+              onClick={saveBankSettings}
+              disabled={savingBank}
+              className="px-4 py-2 bg-[#E53935] text-white rounded-md font-semibold hover:bg-[#c62828] disabled:opacity-60 cursor-pointer"
+            >
+              {savingBank ? 'Menyimpan...' : 'Simpan Rekening'}
+            </button>
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <div className="min-w-[1000px]">
-            {/* Header: Tanggal, Pemesan, Produk, Total, Status, Resi, Aksi */}
-            <div className="grid grid-cols-7 text-[#B3B4B6] bg-[#1E1E20] rounded-sm py-2 px-3 mb-2 font-medium text-b1">
+            {/* Header: Kode, Tanggal, Pemesan, Produk, Total, Status, Resi, Aksi */}
+            <div className="grid grid-cols-8 text-[#B3B4B6] bg-[#1E1E20] rounded-sm py-2 px-3 mb-2 font-medium text-b1">
+              <p className="col-span-1">Kode</p>
               <p className="col-span-1">Tanggal</p>
               <p className="col-span-1">Pemesan</p>
               <p className="col-span-1">Produk</p>
@@ -161,7 +230,11 @@ const OrdersDashboard = () => {
                 {filteredOrders.map(order => {
                   const edit = editState[order.id] || {};
                   return (
-                    <li key={order.id} className="grid grid-cols-7 py-3 px-3 items-center border-b border-[#222225] last:border-none hover:bg-[#222225] transition">
+                    <li key={order.id} className="grid grid-cols-8 py-3 px-3 items-center border-b border-[#222225] last:border-none hover:bg-[#222225] transition">
+                      {/* Kode */}
+                      <span className="col-span-1 text-white text-sm font-semibold">
+                        {order.orderCode || '-'}
+                      </span>
                       {/* Tanggal */}
                       <span className="col-span-1 text-white text-sm">
                         {new Date(order.createdAt).toLocaleString('id-ID')}

@@ -1,5 +1,5 @@
 "use client";
-import { Navbar, Footer } from "../../components";
+import { Footer } from "../../components";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -71,7 +71,6 @@ export default function Berita() {
 
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
-      <Navbar />
       {/* Hero Section */}
       <section className="bg-[#1F1F1F]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-28 py-24">

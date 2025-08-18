@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Delete, Edit } from '../../../public/assets/image';
+import { confirmDialog } from "@/lib/confirmDialog";
 
 const UserManagementPage = () => {
   const [users, setUsers] = useState([]);
@@ -27,7 +28,8 @@ const UserManagementPage = () => {
   }, []);
 
   const handleDeleteUser = async (userId) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus user ini? Ini tidak bisa dibatalkan.')) {
+    const confirmed = await confirmDialog('Apakah Anda yakin ingin menghapus user ini? Ini tidak bisa dibatalkan.');
+    if (!confirmed) {
       return;
     }
     try {

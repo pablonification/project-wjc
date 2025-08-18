@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Delete, Edit } from '../../../public/assets/image';
+import { confirmDialog } from "@/lib/confirmDialog";
 
 const DokumenDashboard = () => {
   const [docs, setDocs] = useState([]);
@@ -72,19 +73,19 @@ const DokumenDashboard = () => {
 
   // Hapus dokumen
   const handleDelete = async (id) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus dokumen ini?")) {
-      try {
-        const res = await fetch(`/api/dokumentasi/${id}`, {
-          method: "DELETE",
-        });
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.message || "Gagal menghapus dokumen");
-        }
-        await fetchDocs();
-      } catch (err) {
-        setError(err.message);
+    const confirmed = await confirmDialog("Apakah Anda yakin ingin menghapus dokumen ini?");
+    if (!confirmed) return;
+    try {
+      const res = await fetch(`/api/dokumentasi/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Gagal menghapus dokumen");
       }
+      await fetchDocs();
+    } catch (err) {
+      setError(err.message);
     }
   };
 

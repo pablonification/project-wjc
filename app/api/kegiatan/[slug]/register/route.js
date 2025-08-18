@@ -1,13 +1,5 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import Midtrans from "midtrans-client";
-
-// Inisialisasi Midtrans Snap
-let snap = new Midtrans.Snap({
-  isProduction: process.env.MIDTRANS_IS_PRODUCTION === "true",
-  serverKey: process.env.MIDTRANS_SERVER_KEY,
-  clientKey: process.env.MIDTRANS_CLIENT_KEY,
-});
 
 export async function POST(request, { params }) {
   try {
@@ -86,45 +78,26 @@ export async function POST(request, { params }) {
       },
     });
 
-    // Create Midtrans payment link
-    let parameter = {
-      transaction_details: {
-        order_id: `activity-${registration.id}`,
-        gross_amount: totalPrice,
-      },
-      customer_details: {
-        first_name: user.name,
-        phone: user.phoneNumber,
-      },
-      item_details: [
-        {
-          id: activity.id,
-          price: totalPrice,
-          quantity: 1,
-          name: `Pendaftaran ${activity.title}`,
-        },
-      ],
-      callbacks: {
-        finish: `${process.env.NEXT_PUBLIC_BASE_URL}/kegiatan/${slug}/payment/success`,
-      },
-    };
-
-    const transaction = await snap.createTransaction(parameter);
-
-    // Update registration with Midtrans info
-    const updatedRegistration = await prisma.activityRegistration.update({
+    // Generate 5-digit registration code and save
+    async function generateUniqueRegistrationCode() {
+      let attempt = 0;
+      while (attempt < 5) {
+        const code = String(Math.floor(10000 + Math.random() * 90000));
+        const exists = await prisma.activityRegistration.findFirst({ where: { registrationCode: code } });
+        if (!exists) return code;
+        attempt += 1;
+      }
+      return String(Date.now()).slice(-5);
+    }
+    const registrationCode = await generateUniqueRegistrationCode();
+    const savedRegistration = await prisma.activityRegistration.update({
       where: { id: registration.id },
-      data: {
-        midtransToken: transaction.token,
-        midtransRedirectUrl: transaction.redirect_url,
-      },
+      data: { registrationCode },
     });
 
+    // Manual bank transfer: return registration and let client show instructions
     return NextResponse.json(
-      {
-        registration: updatedRegistration,
-        paymentUrl: transaction.redirect_url, // Kirim URL redirect
-      },
+      { registration: savedRegistration, redirect: `${process.env.NEXT_PUBLIC_BASE_URL}/kegiatan/${slug}/payment/success` },
       { status: 201 }
     );
   } catch (error) {

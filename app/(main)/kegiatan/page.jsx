@@ -1,5 +1,5 @@
 "use client";
-import { Navbar, Footer, Button } from "../../components";
+import { Footer, Button } from "../../components";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -182,7 +182,6 @@ export default function Kegiatan() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
-      <Navbar />
 
       {/* Hero Section */}
       <section className="bg-[#1F1F1F] font-manrope">

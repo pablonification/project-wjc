@@ -1,13 +1,5 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import Midtrans from "midtrans-client";
-
-// Inisialisasi Midtrans Snap
-let snap = new Midtrans.Snap({
-  isProduction: process.env.MIDTRANS_IS_PRODUCTION === "true",
-  serverKey: process.env.MIDTRANS_SERVER_KEY,
-  clientKey: process.env.MIDTRANS_CLIENT_KEY,
-});
 
 // GET: list all orders for user
 export async function GET(request) {
@@ -41,7 +33,7 @@ export async function GET(request) {
   }
 }
 
-// POST: create new order with Midtrans payment link
+// POST: create new order (manual bank transfer)
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -93,6 +85,20 @@ export async function POST(request) {
       );
     }
 
+    // Generate a 5-digit order code and avoid rare collisions
+    async function generateUniqueOrderCode() {
+      let attempt = 0;
+      while (attempt < 5) {
+        const code = String(Math.floor(10000 + Math.random() * 90000));
+        const exists = await prisma.order.findFirst({ where: { orderCode: code } });
+        if (!exists) return code;
+        attempt += 1;
+      }
+      return String(Date.now()).slice(-5);
+    }
+
+    const orderCode = await generateUniqueOrderCode();
+
     const order = await prisma.order.create({
       data: {
         userId,
@@ -106,40 +112,7 @@ export async function POST(request) {
         shippingMethod,
         courierService: shippingMethod === "DELIVERY" ? courierService : null,
         status: "PENDING",
-      },
-    });
-
-    let parameter = {
-      transaction_details: {
-        order_id: `order-${order.id}`,
-        gross_amount: total,
-      },
-      customer_details: {
-        first_name: user.name,
-        phone: user.phoneNumber,
-      },
-      item_details: [
-        {
-          id: merchandise.id,
-          price: unitPrice,
-          quantity: quantity,
-          name: merchandise.name,
-        },
-      ],
-      callbacks: {
-        finish: `${process.env.NEXT_PUBLIC_BASE_URL}/orders/${order.id}/success`,
-        error: `${process.env.NEXT_PUBLIC_BASE_URL}/orders/${order.id}/failed`,
-        pending: `${process.env.NEXT_PUBLIC_BASE_URL}/orders/${order.id}/pending`,
-      },
-    };
-
-    const transaction = await snap.createTransaction(parameter);
-
-    const updatedOrder = await prisma.order.update({
-      where: { id: order.id },
-      data: {
-        midtransToken: transaction.token,
-        midtransRedirectUrl: transaction.redirect_url,
+        orderCode,
       },
       include: {
         merchandise: true,
@@ -147,7 +120,8 @@ export async function POST(request) {
       },
     });
 
-    return NextResponse.json(updatedOrder, { status: 201 });
+    // For manual transfer, immediately return the created order
+    return NextResponse.json(order, { status: 201 });
   } catch (error) {
     console.error("Error creating order:", error);
     return NextResponse.json(

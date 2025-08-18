@@ -1,5 +1,5 @@
 import { HeroSection, TentangSection, KegiatanSection, BeritaSection } from './home-sections';
-import { Navbar, Footer } from '../components';
+import { Footer } from '../components';
 
 export const dynamic = 'force-dynamic'
 

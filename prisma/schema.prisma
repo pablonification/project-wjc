@@ -41,6 +41,7 @@ model Whitelist {
   // Field untuk menyimpan kapan data ini dibuat.
   // @default(now()) akan otomatis mengisi field ini dengan waktu saat ini ketika data baru dibuat.
   createdAt   DateTime @default(now())
+  lastOtpRequestAt DateTime?
   user        User?
 }
 
@@ -73,6 +74,7 @@ model User {
   addresses       Address[]
   orders          Order[]
   activityRegistrations ActivityRegistration[]
+  lastOtpRequestAt DateTime?
 }
 
 // Tambahan enum status untuk kegiatan
@@ -155,6 +157,7 @@ model ActivityRegistration {
   paymentStatus     PaymentStatus @default(PENDING)
   midtransToken     String?
   midtransRedirectUrl String?
+  registrationCode  String?
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -265,6 +268,7 @@ model Order {
   courierService    String? // JNE, TIKI, POS, dll
   
   status            OrderStatus @default(PENDING)
+  orderCode         String?
   
   // Midtrans payment data
   midtransToken     String?

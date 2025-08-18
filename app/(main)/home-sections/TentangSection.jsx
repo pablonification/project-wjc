@@ -8,7 +8,7 @@ const TentangSection = ({ content }) => {
       <div className='flex flex-col gap-4 max-w-4xl'>
         <h1 className='text-h2 md:text-[32px] md:leading-[44px] text-white'>{content.tentangTitle}</h1>
         <p className='text-[16px] text-gray-100'>{content.tentangDescription}</p>
-        <Button href="/" label={content.tentangButton} img={ArrowOutward}/>
+        <Button href="https://www.instagram.com/meddocs_wjc/" label={content.tentangButton} img={ArrowOutward}/>
       </div>
       <Image
         src={content.tentangImageUrl || MedDocs}

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { uploadToCloudinary } from "@/lib/uploadImage";
 import Image from 'next/image';
 import { Delete, Edit } from '../../../public/assets/image';
+import { confirmDialog } from "@/lib/confirmDialog";
 
 const initialForm = {
   title: "",
@@ -268,21 +269,22 @@ const KegiatanDashboard = () => {
   };
 
   const handleDelete = async (slug) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus kegiatan ini?")) {
-      try {
-        const res = await fetch(`/api/kegiatan/${slug}`, { method: "DELETE" });
-        if (!res.ok) {
-          let errMsg = "Gagal menghapus kegiatan";
-          try {
-            const err = await res.json();
-            errMsg = err.message || errMsg;
-          } catch (e) {}
-          throw new Error(errMsg);
-        }
-        await fetchActivities();
-      } catch (err) {
-        setError(err.message);
+    const confirmed = await confirmDialog("Apakah Anda yakin ingin menghapus kegiatan ini?");
+    if (!confirmed) return;
+    try {
+      const res = await fetch(`/api/kegiatan/${slug}`, { method: "DELETE" });
+      if (!res.ok) {
+        let errMsg = "Gagal menghapus kegiatan";
+        try {
+          const err = await res.json();
+          errMsg = err.message || errMsg;
+        } catch (e) {}
+        throw new Error(errMsg);
       }
+      await fetchActivities();
+    } catch (err) {
+      setError(err.message);
+      alert(err.message);
     }
   };
 

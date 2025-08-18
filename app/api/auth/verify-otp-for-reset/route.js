@@ -1,65 +1,47 @@
-import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma'; 
-import crypto from 'crypto';
-import { parsePhoneNumberFromString } from 'libphonenumber-js';
+// Dipakai hanya untuk Twilio
 
-const otpSecret = process.env.OTP_SECRET;
+import { NextResponse } from 'next/server';
+
+// Ambil kredensial MessageCentral dari environment variables
+const customerId = process.env.MC_CUSTOMER_ID;
+const authToken = process.env.MC_AUTH_TOKEN;
 
 export async function POST(request) {
-  if (!otpSecret) {
-    return NextResponse.json({ message: 'Konfigurasi server tidak lengkap: OTP_SECRET tidak ditemukan.' }, { status: 500 });
+  if (!customerId || !authToken) {
+    console.error("Kesalahan Konfigurasi: Variabel lingkungan MessageCentral tidak diatur.");
+    return NextResponse.json({ message: 'Konfigurasi server tidak lengkap.' }, { status: 500 });
   }
 
   try {
-    const { phoneNumber: rawPhoneNumber, otp } = await request.json();
-
-    if (!rawPhoneNumber || !otp) {
-      return NextResponse.json({ message: 'Nomor telepon dan OTP wajib diisi.' }, { status: 400 });
+    // Untuk Lupa Password, kita hanya butuh otp dan verificationId dari frontend
+    const { otp, verificationId } = await request.json();
+    
+    if (!otp || !verificationId) {
+      return NextResponse.json({ message: 'Data tidak lengkap. OTP dan ID verifikasi wajib diisi.' }, { status: 400 });
     }
 
-    // Normalisasi nomor telepon
-    const phoneNumberObj = parsePhoneNumberFromString(rawPhoneNumber, 'ID');
-    if (!phoneNumberObj || !phoneNumberObj.isValid()) {
-      return NextResponse.json({ message: 'Format nomor telepon tidak valid.' }, { status: 400 });
-    }
-    const normalizedPhoneNumber = phoneNumberObj.format('E.164');
+    // Bangun URL untuk validasi ke MessageCentral sesuai dokumentasi
+    const mcUrl = `https://cpaas.messagecentral.com/verification/v3/validateOtp?verificationId=${verificationId}&customerId=${customerId}&code=${otp}`;
 
-    // Ambil OTP dari database
-    const storedOtpRecord = await prisma.otp.findFirst({
-      where: { phoneNumber: normalizedPhoneNumber },
-      orderBy: { createdAt: 'desc' },
+    const mcResponse = await fetch(mcUrl, {
+      method: 'GET',
+      headers: { 'authToken': authToken },
     });
 
-    if (!storedOtpRecord) {
-      return NextResponse.json({ message: 'Kode OTP tidak ditemukan atau sudah kedaluwarsa.' }, { status: 400 });
+    const responseData = await mcResponse.json();
+
+    // Jika respons dari MessageCentral tidak sukses, teruskan pesannya
+    if (!mcResponse.ok) {
+        console.error("Gagal validasi OTP dari MessageCentral:", responseData);
+        const errorMessage = responseData.message || 'Kode OTP salah atau sudah kedaluwarsa.';
+        return NextResponse.json({ message: errorMessage }, { status: mcResponse.status });
     }
 
-    // Pisahkan hash dan waktu kedaluwarsa dari token yang tersimpan
-    const [storedHash, expiryTime] = storedOtpRecord.token.split('.');
-    const expires = new Date(parseInt(expiryTime, 10));
-
-    // Cek apakah OTP sudah kedaluwarsa
-    if (expires < new Date()) {
-      // Hapus OTP yang sudah kedaluwarsa dari database
-      await prisma.otp.delete({ where: { id: storedOtpRecord.id } });
-      return NextResponse.json({ message: 'Kode OTP sudah kedaluwarsa. Mohon kirim ulang.' }, { status: 400 });
-    }
-
-    // Hash dari OTP yang dimasukkan pengguna
-    const providedHash = crypto.createHmac('sha256', otpSecret).update(otp).digest('hex');
-
-    // Membandingkan hash
-    if (providedHash !== storedHash) {
-      return NextResponse.json({ message: 'Kode OTP salah.' }, { status: 400 });
-    }
-
-    // Hapus otp setelah dipakai
-    await prisma.otp.delete({ where: { id: storedOtpRecord.id } });
-
-    return NextResponse.json({ message: 'OTP berhasil diverifikasi.' }, { status: 200 });
+    // Jika berhasil, kirim respons sukses
+    return NextResponse.json({ message: 'Verifikasi berhasil.' }, { status: 200 });
 
   } catch (error) {
-    console.error("Error verifying OTP for reset:", error);
-    return NextResponse.json({ message: 'Terjadi kesalahan pada server saat verifikasi OTP.' }, { status: 500 });
+    console.error("Error saat verifikasi OTP:", error);
+    return NextResponse.json({ message: 'Gagal memverifikasi OTP.' }, { status: 500 });
   }
 }

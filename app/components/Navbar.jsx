@@ -95,8 +95,7 @@ const Navbar = () => {
       setUser(null);
       setIsDropdownOpen(false); 
       setIsOpen(false);
-      await fetchSession();
-      router.push("/");
+      router.refresh();
     } catch (error) {
       console.error("Gagal logout:", error);
     }

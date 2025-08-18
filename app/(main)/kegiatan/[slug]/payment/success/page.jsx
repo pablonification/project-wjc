@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Navbar, Footer } from "@/app/components";
+import { Footer } from "@/app/components";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -53,6 +53,7 @@ const ActivityPaymentSuccessPage = () => {
   const [registration, setRegistration] = useState(null);
   const [loading, setLoading] = useState(true);
   const [waKegiatan, setWaKegiatan] = useState("6281234567890");
+  const [bank, setBank] = useState({ bankName: "", bankAccount: "", bankAccountName: "" });
 
   const fetchUser = async () => {
     try {
@@ -117,9 +118,23 @@ const ActivityPaymentSuccessPage = () => {
   }, []);
 
   useEffect(() => {
+    const fetchBank = async () => {
+      try {
+        const res = await fetch("/api/admin/settings/bank");
+        if (res.ok) {
+          const data = await res.json();
+          setBank({ bankName: data.bankName || "", bankAccount: data.bankAccount || "", bankAccountName: data.bankAccountName || "" });
+        }
+      } catch (e) {}
+    };
+    fetchBank();
+  }, []);
+
+  useEffect(() => {
     if (activity && registration) {
       const waMessage = encodeURIComponent(
         `Halo, saya sudah berhasil daftar kegiatan.\n\n` +
+        `Kode Pendaftaran: ${registration.registrationCode || registration.id.substring(0,8)}\n` +
         `Nama: ${registration.user?.name || "-"}\n` +
         `Nama Kegiatan: ${activity.title}\n` +
         `Tanggal: ${new Date(activity.dateStart).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}` +
@@ -127,20 +142,24 @@ const ActivityPaymentSuccessPage = () => {
         `Lokasi: ${activity.location}\n` +
         `Ukuran Kaos: ${registration.tshirtSize}\n` +
         (registration.needAccommodation ? `Penginapan: Ya (${registration.roomType})\n` : "") +
-        `Total Pembayaran: Rp${registration.totalPrice.toLocaleString("id-ID")}\n`
+        `Total Transfer: Rp${registration.totalPrice.toLocaleString("id-ID")}\n` +
+        `Rekening Tujuan: ${bank.bankName || '-'} ${bank.bankAccount || '-'} (${bank.bankAccountName || '-'})\n\n` +
+        `Tata Cara Pembayaran:\n` +
+        `1. Transfer sesuai nominal Total Transfer ke rekening di atas.\n` +
+        `2. Balas pesan ini dengan bukti transfer (screenshot).\n` +
+        `3. Admin akan verifikasi dan update status pendaftaran menjadi PAID.`
       );
       const waLink = `https://wa.me/${waKegiatan}?text=${waMessage}`;
       const timeout = setTimeout(() => {
         window.location.href = waLink;
-      }, 2000);
+      }, 4000);
       return () => clearTimeout(timeout);
     }
-  }, [activity, registration, waKegiatan]);
+  }, [activity, registration, waKegiatan, bank]);
 
   if (loading) {
     return (
         <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
-            <Navbar />
             <ActivityPaymentSuccessPageSkeleton />
             <Footer />
         </div>
@@ -149,7 +168,6 @@ const ActivityPaymentSuccessPage = () => {
 
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
-      <Navbar />
       <main className="flex-grow bg-black text-white">
         <div className="container mx-auto mt-20 px-4 sm:px-6 lg:px-28 py-16">
           <div className="max-w-2xl mx-auto text-center">
@@ -169,10 +187,10 @@ const ActivityPaymentSuccessPage = () => {
                   />
                 </svg>
               </div>
-              <h1 className="text-h1 font-bold mb-4">Pembayaran Berhasil!</h1>
+              <h1 className="text-h1 font-bold mb-4">Pendaftaran Dibuat</h1>
               <p className="text-gray-300 text-b1">
-                Terima kasih telah mendaftar. Pendaftaran Anda untuk kegiatan
-                ini sudah berhasil diproses.
+                Silakan melakukan transfer manual ke rekening berikut, lalu
+                konfirmasi via WhatsApp agar admin dapat memverifikasi pembayaran Anda.
               </p>
             </div>
 
@@ -212,6 +230,7 @@ const ActivityPaymentSuccessPage = () => {
 
                 {registration && (
                   <>
+                    <p className="text-sm text-gray-400">Kode Pendaftaran: <span className="text-white font-semibold">{registration.registrationCode || registration.id.substring(0,8)}</span></p>
                     <div className="border-t border-gray-700 pt-4 space-y-2 text-sm text-gray-300">
                       <div className="flex justify-between">
                         <span>Ukuran Kaos/Jersey</span>
@@ -239,10 +258,15 @@ const ActivityPaymentSuccessPage = () => {
                       </div>
                     </div>
 
-                    <div className="border-t border-gray-700 pt-4 text-sm text-gray-400">
+                    <div className="border-t border-gray-700 pt-4 text-sm text-gray-400 space-y-2">
                       <p>
-                        <strong>Status:</strong> {"Dibayar"}
+                        <strong>Status:</strong> {registration.paymentStatus}
                       </p>
+                      <div className="bg-gray-800 p-4 rounded-lg text-white">
+                        <p className="font-semibold">Transfer ke:</p>
+                        <p>{bank.bankName || "-"}</p>
+                        <p className="text-lg">{bank.bankAccount || "-"}{bank.bankAccountName ? ` (${bank.bankAccountName})` : ''}</p>
+                      </div>
                     </div>
                   </>
                 )}
@@ -271,13 +295,18 @@ const ActivityPaymentSuccessPage = () => {
                       `Lokasi: ${activity.location}\n` +
                       `Ukuran Kaos: ${registration.tshirtSize}\n` +
                       (registration.needAccommodation ? `Penginapan: Ya (${registration.roomType})\n` : "") +
-                      `Total Pembayaran: Rp${registration.totalPrice.toLocaleString("id-ID")}\n`
+                      `Total Transfer: Rp${registration.totalPrice.toLocaleString("id-ID")}\n` +
+                      `Rekening Tujuan: ${bank.bankName || '-'} ${bank.bankAccount || '-'}${bank.bankAccountName ? ` (${bank.bankAccountName})` : ''}\n\n` +
+                      `Tata Cara Pembayaran:\n` +
+                      `1. Transfer sesuai nominal Total Transfer ke rekening di atas.\n` +
+                      `2. Balas pesan ini dengan bukti transfer (screenshot).\n` +
+                      `3. Admin akan verifikasi dan update status pendaftaran menjadi PAID.`
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg cursor-pointer"
                   >
-                    Konfirmasi Pendaftaran
+                    Konfirmasi via WhatsApp
                   </a>
                 )}
                 <Link

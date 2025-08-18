@@ -1,7 +1,7 @@
 "use client";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Navbar, Footer } from "../../../components";
+import { Footer } from "../../../components";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -176,9 +176,9 @@ export default function KegiatanDetail() {
       if (response.ok) {
         const responseData = await response.json();
 
-        // Close modal and redirect to payment
+        // Close modal and redirect to manual payment instructions
         setShowRegistrationModal(false);
-        window.location.href = responseData.paymentUrl;
+        window.location.href = `/kegiatan/${slug}/payment/success`;
       } else {
         const errorData = await response.json();
         alert(
@@ -196,7 +196,6 @@ export default function KegiatanDetail() {
   if (loading)
     return (
       <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
-        <Navbar />
         <KegiatanDetailSkeleton />
         <Footer />
       </div>
@@ -216,7 +215,6 @@ export default function KegiatanDetail() {
 
   return (
     <div className="bg-[#181818] min-h-screen flex flex-col font-manrope">
-      <Navbar />
       <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-28 py-16 font-manrope translate-y-28 mb-60 text-white">
         <Link href="/kegiatan">
           <div className="flex items-center gap-2 text-sh1 text-gray-200 hover:text-white transition-colors mb-4 cursor-pointer group font-manrope">

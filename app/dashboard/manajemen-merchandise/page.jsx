@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { uploadToCloudinary } from "@/lib/uploadImage";
 import Image from "next/image";
 import { Delete, Edit } from "../../../public/assets/image"; // Pastikan asset sudah ada!
+import { confirmDialog } from "@/lib/confirmDialog";
 
 const initialForm = {
   name: "",
@@ -207,21 +208,22 @@ const MerchandiseDashboard = () => {
   };
 
   const handleDelete = async (slug) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus produk ini?")) {
-      try {
-        const res = await fetch(`/api/merchandise/${slug}`, { method: "DELETE" });
-        if (!res.ok) {
-          let errMsg = "Gagal menghapus produk";
-          try {
-            const err = await res.json();
-            errMsg = err.message || errMsg;
-          } catch (e) {}
-          throw new Error(errMsg);
-        }
-        await fetchItems();
-      } catch (err) {
-        setError(err.message);
+    const confirmed = await confirmDialog("Apakah Anda yakin ingin menghapus produk ini?");
+    if (!confirmed) return;
+    try {
+      const res = await fetch(`/api/merchandise/${slug}`, { method: "DELETE" });
+      if (!res.ok) {
+        let errMsg = "Gagal menghapus produk";
+        try {
+          const err = await res.json();
+          errMsg = err.message || errMsg;
+        } catch (e) {}
+        throw new Error(errMsg);
       }
+      await fetchItems();
+    } catch (err) {
+      setError(err.message);
+      alert(err.message);
     }
   };
 

@@ -3,6 +3,7 @@
 import {Delete} from '../../../public/assets/image'
 import { useState, useEffect } from 'react';
 import Image from "next/image";
+import { confirmDialog } from "@/lib/confirmDialog";
 
 const Page = () => {
 
@@ -68,10 +69,8 @@ const Page = () => {
 
   // Fungsi utk menangani penghapusan nomor
   const handleDeleteNumber = async (id) => {
-    // Konfirmasi sederhana sebelum menghapus
-    if (!window.confirm('Apakah Anda yakin ingin menghapus nomor ini?')) {
-      return;
-    }
+    const confirmed = await confirmDialog('Apakah Anda yakin ingin menghapus nomor ini?');
+    if (!confirmed) return;
 
     try {
       // call API DELETE untuk menghapus nomor berdasarkan ID
@@ -92,6 +91,7 @@ const Page = () => {
       setWhitelist(whitelist.filter((item) => item.id !== id));
     } catch (err) {
       setError(err.message);
+      alert(err.message);
     }
   };
 

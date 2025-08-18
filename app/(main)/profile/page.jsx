@@ -1,6 +1,6 @@
 // app/profile/page.jsx
 
-import { Navbar, Footer } from "../../components";
+import { Footer } from "../../components";
 import ProfileClient from "./ProfileClient"; // Kita akan buat file ini selanjutnya
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
