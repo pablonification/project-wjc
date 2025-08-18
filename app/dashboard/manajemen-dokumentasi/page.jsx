@@ -263,50 +263,56 @@ const DokumenDashboard = () => {
 
         <div className="mt-8">
           <h2 className="text-xl font-semibold mb-4">Daftar Dokumen</h2>
-          {loading ? (
-            <p className="text-[#B3B4B6]">Memuat data...</p>
-          ) : docs.length > 0 ? (
-            <div className="space-y-3">
-              {docs.map((d) => (
-                <div
-                  key={d.id}
-                  className="flex justify-between items-center bg-[#222225] border border-[#222225] p-4 rounded-lg"
-                >
-                  <div>
-                    <a
-                      href={d.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#5F9DF7] font-semibold hover:underline"
-                    >
-                      {d.name}
-                    </a>
-                    <span className="text-xs text-[#B3B4B6] ml-4">
-                      {new Date(d.createdAt).toLocaleDateString("id-ID")}
-                    </span>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEdit(d)}
-                      className="flex items-center gap-1 px-3 py-2 bg-[#C4A254] text-white text-b2 rounded-sm font-medium hover:bg-[#b7964b] focus:outline-none cursor-pointer"
-                    >
-                      <Image src={Edit} alt='Edit' width={20} height={20} />
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(d.id)}
-                      className="flex items-center gap-1 px-3 py-2 bg-[#E53935] text-white text-b2 rounded-sm font-medium hover:bg-[#c62828] focus:outline-none cursor-pointer"
-                    >
-                      <Image src={Delete} alt='Hapus' width={20} height={20} />
-                      Hapus
-                    </button>
-                  </div>
-                </div>
-              ))}
+          <div className="bg-[#141415] mx-auto w-[390px] sm:w-full max-w-full overflow-x-auto max-h-[calc(100vh-220px)] overflow-y-auto">
+            <div className="min-w-[700px] w-auto">
+              <div className="grid grid-cols-4 min-w-[700px] text-[#B3B4B6] bg-[#1E1E20] rounded-sm py-2 px-3 mb-2 font-medium text-b1">
+                <p className="col-span-2">Nama Dokumentasi</p>
+                <p className="col-span-1">Tanggal</p>
+                <p className="col-span-1 text-right">Aksi</p>
+              </div>
+              {loading ? (
+                <p className="text-[#B3B4B6]">Memuat data...</p>
+              ) : docs.length > 0 ? (
+                <ul className="min-w-[700px] w-full">
+                  {docs.map((d) => (
+                    <li key={d.id} className="grid grid-cols-4 py-3 px-3 items-center border-b border-[#222225] last:border-none min-w-0">
+                      <span className="col-span-2 text-white break-words min-w-0">
+                        <a
+                          href={d.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-white font-semibold hover:underline break-words"
+                        >
+                          {d.name}
+                        </a>
+                      </span>
+                      <span className="col-span-1 text-[#B3B4B6] min-w-0">
+                        {new Date(d.createdAt).toLocaleDateString("id-ID")}
+                      </span>
+                      <span className="col-span-1 flex justify-end gap-2">
+                        <button
+                          onClick={() => handleEdit(d)}
+                          className="flex items-center gap-1 px-3 py-2 bg-[#C4A254] text-white text-b2 rounded-sm font-medium hover:bg-[#b7964b] focus:outline-none cursor-pointer"
+                        >
+                          <Image src={Edit} alt='Edit' width={20} height={20} />
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(d.id)}
+                          className="flex items-center gap-1 px-3 py-2 bg-[#E53935] text-white text-b2 rounded-sm font-medium hover:bg-[#c62828] focus:outline-none cursor-pointer"
+                        >
+                          <Image src={Delete} alt='Hapus' width={20} height={20} />
+                          Hapus
+                        </button>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-[#B3B4B6] min-w-[700px]">Tidak ada dokumen.</p>
+              )}
             </div>
-          ) : (
-            <p className="text-[#B3B4B6]">Tidak ada dokumen.</p>
-          )}
+          </div>
         </div>
       </div>
     </div>
