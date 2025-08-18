@@ -333,34 +333,34 @@ const MerchandiseDashboard = () => {
   // ----------- MAIN DASHBOARD UI -----------
   return (
     <div className="min-h-screen bg-[#141415] p-8">
-      <div className="max-w-5xl p-4 shadow-none bg-[#141415]">
+      <div className="max-w-5xl p-4">
         {/* Judul */}
         <h1 className="text-h2 text-white mb-8">
           Pengelolaan Merchandise
         </h1>
         {/* WA Konfirmasi */}
-        <form onSubmit={handleWaSubmit} className="mb-8 flex items-end gap-4">
-          <div>
-            <label className="block text-b2 text-[#B3B4B6] mb-2">
-              Nomor WA Konfirmasi Merchandise
-            </label>
+        <form onSubmit={handleWaSubmit} className="mb-8">
+          <label className="block text-b2 text-[#B3B4B6] mb-2">
+            Nomor WA Konfirmasi Merchandise
+          </label>
+          <div className="flex flex-col md:flex-row gap-3">
             <input
               type="text"
               value={waMerch}
               onChange={e => setWaMerch(e.target.value)}
-              className="border border-[#B3B4B6] bg-[#141415] text-white px-4 py-2 rounded-md w-64 placeholder-[#B3B4B6] outline-none"
+              className="border border-[#B3B4B6] bg-[#141415] text-white px-4 py-2 rounded-md placeholder-[#B3B4B6] outline-none"
               placeholder="+628xxxxxxxxxx"
               required
               disabled={waLoading}
             />
+            <button
+              type="submit"
+              className="px-5 py-2 bg-[#65666B] text-white rounded-md hover:bg-[#88898d] transition"
+              disabled={waLoading}
+            >
+              {waLoading ? "..." : "Simpan"}
+            </button>
           </div>
-          <button
-            type="submit"
-            className="px-5 py-2 bg-[#65666B] text-white rounded-md hover:bg-[#88898d] transition"
-            disabled={waLoading}
-          >
-            {waLoading ? "..." : "Simpan"}
-          </button>
           {waMsg && <span className="text-sm ml-2 text-white">{waMsg}</span>}
         </form>
         {/* Button Tambah Produk Baru */}
