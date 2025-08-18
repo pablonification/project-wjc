@@ -1,39 +1,50 @@
 import { NextResponse } from 'next/server';
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
+import twilio from 'twilio';
 
-const customerId = process.env.MC_CUSTOMER_ID;
-const authToken = process.env.MC_AUTH_TOKEN;
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const verifySid = process.env.TWILIO_VERIFY_SERVICE_SID;
+
+const client = twilio(accountSid, authToken);
 
 export async function POST(request) {
-  if (!customerId || !authToken) {
-    console.error("Kesalahan Konfigurasi: Variabel lingkungan MessageCentral tidak diatur.");
+  if (!accountSid || !authToken || !verifySid) {
+    console.error("Konfigurasi Twilio Verify tidak lengkap.");
     return NextResponse.json({ message: 'Konfigurasi server tidak lengkap.' }, { status: 500 });
   }
 
   try {
-    const { otp, verificationId } = await request.json();
-    if (!otp || !verificationId) {
-      return NextResponse.json({ message: 'Data tidak lengkap. OTP dan ID verifikasi wajib diisi.' }, { status: 400 });
-    }
-    
-    const mcUrl = `https://cpaas.messagecentral.com/verification/v3/validateOtp?verificationId=${verificationId}&customerId=${customerId}&code=${otp}`;
-
-    const mcResponse = await fetch(mcUrl, {
-      method: 'GET',
-      headers: { 'authToken': authToken },
-    });
-
-    const responseData = await mcResponse.json();
-
-    if (!mcResponse.ok || responseData.responseCode !== 200) {
-        console.error("Gagal validasi OTP dari MessageCentral:", responseData);
-        const errorMessage = responseData.message || 'Kode OTP salah atau sudah kedaluwarsa.';
-        return NextResponse.json({ message: "Kode OTP Salah!" }, { status: 400 }); // Selalu kirim status 400 untuk error OTP
+    // mengirim phoneNumber dan otp
+    const { phoneNumber: rawPhoneNumber, otp } = await request.json();
+    if (!rawPhoneNumber || !otp) {
+      return NextResponse.json({ message: 'Nomor telepon dan OTP wajib diisi.' }, { status: 400 });
     }
 
-    return NextResponse.json({ message: 'Verifikasi berhasil.' }, { status: 200 });
+    const phoneNumberObj = parsePhoneNumberFromString(rawPhoneNumber, 'ID');
+    if (!phoneNumberObj || !phoneNumberObj.isValid()) {
+      return NextResponse.json({ message: 'Format nomor telepon tidak valid.' }, { status: 400 });
+    }
+    const normalizedPhoneNumber = phoneNumberObj.format('E.164');
+
+    // Memvalidasi OTP menggunakan Twilio Verify
+    const verificationCheck = await client.verify.v2.services(verifySid)
+      .verificationChecks
+      .create({ to: normalizedPhoneNumber, code: otp });
+
+    // Cek apakah statusnya "approved"
+    if (verificationCheck.status === 'approved') {
+      return NextResponse.json({ message: 'Verifikasi berhasil.' }, { status: 200 });
+    } else {
+      return NextResponse.json({ message: 'Kode OTP salah atau sudah kedaluwarsa.' }, { status: 400 });
+    }
 
   } catch (error) {
-    console.error("Error saat verifikasi OTP:", error);
+    console.error("Error saat verifikasi OTP via Twilio Verify:", error);
+    // Error 20404 berarti OTP tidak ditemukan/salah
+    if (error.code === 20404) {
+        return NextResponse.json({ message: 'Kode OTP salah atau sudah kedaluwarsa.' }, { status: 400 });
+    }
     return NextResponse.json({ message: 'Gagal memverifikasi OTP.' }, { status: 500 });
   }
 }
