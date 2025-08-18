@@ -66,7 +66,7 @@ const UserManagementPage = () => {
 
         {/* Search Input */}
         <div className="mb-6 flex items-center">
-          <div className="relative w-full max-w-sm">
+          <div className="relative w-full md:max-w-sm">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#65666B]">
               <svg width="20" height="20" fill="none" stroke="currentColor">
                 <circle cx="9" cy="9" r="7" strokeWidth="2"/>
@@ -78,7 +78,7 @@ const UserManagementPage = () => {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Cari pengguna..."
-              className="flex-grow px-10 py-2 text-white border border-[#65666B] rounded-sm"
+              className="w-full px-10 py-2 text-white border border-[#65666B] rounded-sm"
             />
           </div>
         </div>
