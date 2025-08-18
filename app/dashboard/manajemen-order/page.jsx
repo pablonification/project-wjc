@@ -109,8 +109,8 @@ const OrdersDashboard = () => {
       <div className="max-w-7xl p-4 rounded-xl shadow-md">
         <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
           <h1 className="text-h2">Manajemen Pesanan</h1>
-          <div className="flex items-center gap-4">
-            <div className="relative w-[260px]">
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="relative">
               <select
                 value={selectedMerch}
                 onChange={(e) => setSelectedMerch(e.target.value)}
