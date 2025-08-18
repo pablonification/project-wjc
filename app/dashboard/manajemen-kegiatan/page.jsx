@@ -30,7 +30,6 @@ const initialForm = {
   tshirtPriceXXXL: "",
 };
 
-// Mengganti nama komponen agar sesuai dengan file, namun mempertahankan logika yang Anda berikan
 const ManajemenKegiatanPage = () => {
   const [activities, setActivities] = useState([]);
   const [form, setForm] = useState(initialForm);
