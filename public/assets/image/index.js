@@ -9,6 +9,7 @@ import MedDocs from './MedDocs.png'
 import Placeholder from './Placeholder.png'
 import upload from './upload.png'
 import SidebarBanner from './sidebar-banner.png'
+import SidebarLandingPage from './sidebar-landing-page.png'
 import SidebarBerita from './sidebar-berita.png'
 import SidebarDashboard from './sidebar-dashboard.png'
 import SidebarDokumentasi from './sidebar-dokumentasi.png'
@@ -39,6 +40,7 @@ export{
     SidebarDashboard,
     SidebarDokumentasi,
     SidebarBerita,
+    SidebarLandingPage,
     SidebarKegiatan,
     SidebarMerchandise,
     SidebarPendaftaranKegiatan,

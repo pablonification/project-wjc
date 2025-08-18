@@ -8,6 +8,7 @@ import {
       SidebarDashboard,
       SidebarDokumentasi,
       SidebarBerita,
+      SidebarLandingPage,
       SidebarKegiatan,
       SidebarMerchandise,
       SidebarPendaftaranKegiatan,
@@ -20,7 +21,7 @@ const dashboard = [
   { name: "Dashboard", href: "/dashboard", icon: SidebarDashboard },
 ];
 const konten = [
-  { name: "Halaman Utama", href: "/dashboard/manajemen-landing-page", icon: SidebarBerita },
+  { name: "Halaman Utama", href: "/dashboard/manajemen-landing-page", icon: SidebarLandingPage },
   { name: "Berita", href: "/dashboard/manajemen-berita", icon: SidebarBerita },
   { name: "Kegiatan", href: "/dashboard/manajemen-kegiatan", icon: SidebarKegiatan },
   { name: "Merchandise", href: "/dashboard/manajemen-merchandise", icon: SidebarMerchandise },
