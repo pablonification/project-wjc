@@ -542,33 +542,33 @@ const KegiatanDashboard = () => {
   // ----------- MAIN DASHBOARD UI -----------
   return (
     <div className="min-h-screen bg-[#141415] p-8">
-      <div className="max-w-5xl p-4 rounded-xl shadow-md bg-[#141415]">
+      <div className="max-w-5xl p-4">
         {/* Judul & WA Konfirmasi */}
         <h1 className="text-h2 text-white mb-6">
           Pengelolaan Kegiatan
         </h1>
-        <form onSubmit={handleWaSubmit} className="mb-8 flex items-end gap-4">
-          <div>
-            <label className="block text-b2 text-[#B3B4B6] mb-2">
-              Nomor WA Konfirmasi Merchandise
-            </label>
+        <form onSubmit={handleWaSubmit} className="mb-8">
+          <label className="block text-b2 text-[#B3B4B6] mb-2">
+            Nomor WA Konfirmasi Merchandise
+          </label>
+          <div className="flex flex-col md:flex-row gap-3">
             <input
               type="text"
               value={waKegiatan}
               onChange={e => setWaKegiatan(e.target.value)}
-              className="border border-[#B3B4B6] bg-[#141415] text-white px-4 py-2 rounded-md w-64 placeholder-[#B3B4B6] outline-none"
+              className="border border-[#B3B4B6] bg-[#141415] text-white px-4 py-2 rounded-md w-full md:w-64 placeholder-[#B3B4B6] outline-none min-w-0"
               placeholder="+628xxxxxxxxxx"
               required
               disabled={waLoading}
             />
+            <button
+              type="submit"
+              className="w-full md:w-auto px-5 py-2 bg-[#65666B] text-white rounded-md hover:bg-[#88898d] transition"
+              disabled={waLoading}
+            >
+              {waLoading ? "..." : "Simpan"}
+            </button>
           </div>
-          <button
-            type="submit"
-            className="px-5 py-2 bg-[#65666B] text-white rounded-md hover:bg-[#88898d] transition"
-            disabled={waLoading}
-          >
-            {waLoading ? "..." : "Simpan"}
-          </button>
           {waMsg && <span className="text-sm ml-2 text-white">{waMsg}</span>}
         </form>
         {/* Button Tambah Kegiatan Baru */}
@@ -582,30 +582,30 @@ const KegiatanDashboard = () => {
           Tambah Kegiatan Baru
         </button>
         {/* Table Kegiatan */}
-        <div className="overflow-x-auto min-w-[1000px] bg-[#141415]">
+        <div className="w-full overflow-x-auto bg-[#141415]">
           <h2 className="block text-b2 text-[#B3B4B6] mb-2">Daftar Kegiatan</h2>
           {/* Table Header */}
           <div className="min-w-[1000px] grid grid-cols-6 text-[#B3B4B6] bg-[#1E1E20] rounded-sm py-2 px-3 mb-2 font-medium text-b1">
             <p className="col-span-2">Kegiatan</p>
             <p className="col-span-2">Lokasi</p>
             <p className="col-span-1">Tanggal</p>
-            <p className="col-span-1 text-right">Aksi</p>
+            <p className="col-span-1">Aksi</p>
           </div>
           {/* Table Body */}
           {loading ? (
             <p className="text-white">Memuat data...</p>
           ) : activities.length > 0 ? (
-            <ul className="min-w[1000px]">
+            <ul className="min-w-[1000px] w-full">
               {activities.map((item) => (
-                <li key={item.id} className="grid grid-cols-6 py-3 px-3 items-center border-b border-[#222225] last:border-none">
+                <li key={item.id} className="grid grid-cols-6 py-3 px-3 items-center border-b border-[#222225] last:border-none min-w-0">
                   {/* Kegiatan */}
-                  <span className="col-span-2 text-white">
+                  <span className="col-span-2 text-white break-words min-w-0">
                     <div className="font-medium">{item.title}</div>
                   </span>
                   {/* Lokasi */}
-                  <span className="col-span-2 text-white">{item.location}</span>
+                  <span className="col-span-2 text-white break-words min-w-0">{item.location}</span>
                   {/* Tanggal */}
-                  <span className="col-span-1 text-white">{formatDate(item.dateStart)}</span>
+                  <span className="col-span-1 text-white min-w-0">{formatDate(item.dateStart)}</span>
                   {/* Aksi */}
                   <span className="col-span-1 flex justify-end gap-2">
                     <button
